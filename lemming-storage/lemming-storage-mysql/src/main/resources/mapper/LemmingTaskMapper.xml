@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.xiaoyu.lemming.mapper.LemmingTaskMapper">
+    <sql id="Base_Column_List">
+
+    </sql>
+
+    <select id="getOneTask" resultType="com.xiaoyu.lemming.core.api.LemmingTask">
+        select
+        a.id as id,
+        a.task_id as taskId,
+        a.group as
+        "group",
+        a.app as app,
+        a.rule as rule,
+        a.transport as transport,
+        a.params as params,
+        a.usable as
+        usable
+        from biz_task as a
+        where a.task_id =#{taskId}
+        and a.usable = 1
+        and a.del_flag=0
+    </select>
+
+    <select id="getTasks" resultType="com.xiaoyu.lemming.core.api.LemmingTask"
+        parameterType="java.lang.String">
+        select
+        a.id as id,
+        a.task_id as taskId,
+        a.group as "group",
+        a.app as app,
+        a.rule as rule,
+        a.transport as transport,
+        a.params as params,
+        a.usable as usable
+        from biz_task as a
+        where
+        a.usable = 1
+        and a.del_flag=0
+        <if test="app != null">
+            and app = #{app}
+        </if>
+    </select>
+
+    <insert id="batchInsert" parameterType="java.util.List">
+        insert into biz_task(
+        task_id,
+        `group`,
+        app,
+        rule,
+        transport,
+        params,
+        usable
+        )
+        values
+        <foreach collection="list" item="item" index="index" separator=",">
+            (
+            #{item.taskId},
+            #{item.group},
+            #{item.app},
+            #{item.rule},
+            #{item.transport},
+            <choose>
+                <when test="item.params != null">
+                    #{item.params},
+                </when>
+                <otherwise>'',</otherwise>
+            </choose>
+            #{item.usable}
+            )
+        </foreach>
+    </insert>
+
+    <update id="batchUpdate" parameterType="java.util.List">
+        update biz_task
+        set
+        usable =
+        <if test="list[0].id != null">
+            <foreach collection="list" item="item" index="index" open="(case id"
+                close="end)" separator="">
+                when #{item.id} then #{item.usable}
+            </foreach>
+            ,
+        </if>
+        where is_deleted = 0
+        <if test="list[0].id != null">
+            and id in
+            <foreach collection="list" item="item" index="index" open="(" separator=","
+                close=")">
+                #{item.id}
+            </foreach>
+        </if>
+    </update>
+</mapper>
