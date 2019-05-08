@@ -3,6 +3,9 @@
  */
 package com.xiaoyu.lemming.transport;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.xiaoyu.beacon.common.generic.GenericReference;
 import com.xiaoyu.beacon.proxy.common.GenericRequestLauncher;
 import com.xiaoyu.beacon.rpc.service.GenericService;
@@ -16,6 +19,8 @@ import com.xiaoyu.lemming.core.api.LemmingTask;
  * @description
  */
 public class BeaconTransporter implements Transporter {
+
+    private static final Logger logger = LoggerFactory.getLogger(BeaconTransporter.class);
 
     @Override
     public void callback(LemmingTask task) {
@@ -40,7 +45,8 @@ public class BeaconTransporter implements Transporter {
                 }
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            //
+            logger.error(" Task[" + task.getTaskId() + "] Call task client failed:" + e);
         }
     }
 

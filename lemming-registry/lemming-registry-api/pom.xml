@@ -8,6 +8,7 @@
         <version>0.0.1-SNAPSHOT</version>
     </parent>
     <artifactId>lemming-registry-api</artifactId>
+
     <dependencies>
         <dependency>
             <groupId>com.xiaoyu</groupId>

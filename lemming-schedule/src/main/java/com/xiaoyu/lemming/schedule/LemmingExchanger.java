@@ -47,7 +47,7 @@ public class LemmingExchanger implements Exchanger {
         Storage_Monitor.scheduleAtFixedRate(() -> {
             try {
                 Storage storage = SpiManager.defaultSpiExtender(Storage.class);
-                List<LemmingTask> tasks = storage.fetchTasks();
+                List<LemmingTask> tasks = storage.fetchUpdatedTasks();
                 allocate(tasks);
             } catch (Exception e) {
                 e.printStackTrace();
@@ -55,8 +55,23 @@ public class LemmingExchanger implements Exchanger {
         }, 0, 5, TimeUnit.SECONDS);
     }
 
+    private void init() {
+        try {
+            Storage storage = SpiManager.defaultSpiExtender(Storage.class);
+            // 应该分页取
+            List<LemmingTask> tasks = storage.fetchAllTasks();
+            allocate(tasks);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+    }
+
     @Override
     public void allocate(List<LemmingTask> tasks) {
+        if (tasks.isEmpty()) {
+            return;
+        }
         for (LemmingTask task : tasks) {
             Queue<LemmingTask> tqueue = Appending_Task_Map.get(task.getApp());
             if (tqueue == null) {
@@ -71,15 +86,14 @@ public class LemmingExchanger implements Exchanger {
             Worker worker = workerFactory.arrage(en.getKey());
             Iterator<LemmingTask> viter = en.getValue().iterator();
             while (viter.hasNext()) {
-                taskNum++;
                 LemmingTask t = viter.next();
-                if (t.getUsable() == 1) {
-                    worker.accept(t);
+                if (worker.accept(t)) {
+                    taskNum++;
                 }
                 viter.remove();
             }
         }
-        logger.info("目前任务数:" + taskNum);
+        logger.info("目前更新任务数:" + taskNum);
     }
 
     @Override
@@ -94,6 +108,7 @@ public class LemmingExchanger implements Exchanger {
 
     @Override
     public void start() {
+        this.init();
         this.startInspect();
         workerFactory.startMonitor();
     }

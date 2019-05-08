@@ -18,4 +18,10 @@ public interface Storage {
     LemmingTask fetch();
 
     List<LemmingTask> fetchTasks();
+
+    int insertLog(String taskId, String msg, boolean isError);
+
+    List<LemmingTask> fetchAllTasks();
+
+    List<LemmingTask> fetchUpdatedTasks();
 }

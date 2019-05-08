@@ -12,12 +12,16 @@
         <dependency>
             <groupId>com.xiaoyu</groupId>
             <artifactId>lemming-storage-api</artifactId>
-            <version>0.0.1-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>com.xiaoyu</groupId>
             <artifactId>lemming-core-api</artifactId>
         </dependency>
+        <dependency>
+            <groupId>com.xiaoyu</groupId>
+            <artifactId>lemming-common</artifactId>
+        </dependency>
+        
         <dependency>
             <groupId>org.mybatis</groupId>
             <artifactId>mybatis</artifactId>
@@ -30,9 +34,9 @@
         </dependency>
 
         <dependency>
-            <groupId>org.apache.logging.log4j</groupId>
-            <artifactId>log4j-core</artifactId>
-            <version>2.11.1</version>
+            <groupId>log4j</groupId>
+            <artifactId>log4j</artifactId>
+            <version>1.2.17</version>
         </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>

@@ -8,9 +8,14 @@ import com.xiaoyu.lemming.core.api.LemmingTask;
 
 public interface LemmingTaskMapper {
 
-    LemmingTask getOneTask(String taskId);
+    LemmingTask getOneTask(@Param("app") String app, @Param("taskId") String taskId);
 
     List<LemmingTask> getTasks(@Param("app") String app);
 
+    int insert(LemmingTask task);
+
     int batchInsert(List<LemmingTask> list);
+
+    List<LemmingTask> getUpdatedTasks(@Param("updateDate") String updateDate);
+
 }

@@ -22,7 +22,7 @@ public interface Worker {
      * 
      * @param tasks
      */
-    void accept(LemmingTask task);
+    boolean accept(LemmingTask task);
 
     /**
      * 是否繁忙
@@ -47,5 +47,7 @@ public interface Worker {
      * 下岗
      */
     void laidOff();
+    
+    boolean isLaidOff();
 
 }

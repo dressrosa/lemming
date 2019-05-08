@@ -11,6 +11,10 @@ import java.io.Serializable;
 public class LemmingTask implements Task, Serializable {
 
     private static final long serialVersionUID = 8607614712966713060L;
+
+    private Integer id;
+    private int delFlag = 0;
+
     // 任务id
     private String taskId;
     // 任务所属组别
@@ -38,8 +42,40 @@ public class LemmingTask implements Task, Serializable {
     private Object proxy;
     // 是否正在运行
     private volatile boolean running;
-    // 立即执行
+    // 是否异步
     private boolean sync;
+    // 是否暂停
+    private Integer suspension;
+
+    public Integer getSuspension() {
+        return suspension;
+    }
+
+    public LemmingTask setSuspension(Integer suspension) {
+        this.suspension = suspension;
+        return this;
+    }
+
+    public LemmingTask setUsable(int usable) {
+        this.usable = usable;
+        return this;
+    }
+
+    public int getDelFlag() {
+        return delFlag;
+    }
+
+    public void setDelFlag(int delFlag) {
+        this.delFlag = delFlag;
+    }
+
+    public Integer getId() {
+        return id;
+    }
+
+    public void setId(Integer id) {
+        this.id = id;
+    }
 
     public LemmingTask(String taskId) {
         this.taskId = taskId;
@@ -56,11 +92,6 @@ public class LemmingTask implements Task, Serializable {
 
     public Integer getUsable() {
         return usable;
-    }
-
-    public LemmingTask setUsable(Integer usable) {
-        this.usable = usable;
-        return this;
     }
 
     public String getTransport() {
@@ -184,12 +215,6 @@ public class LemmingTask implements Task, Serializable {
     }
 
     @Override
-    public void afterFailed() {
-        // TODO Auto-generated method stub
-
-    }
-
-    @Override
     public int hashCode() {
         String key = this.toPath();
         int h;
@@ -224,6 +249,7 @@ public class LemmingTask implements Task, Serializable {
                 .append("&protocol=").append(this.getProtocol())
                 .append("&transport=").append(this.getTransport())
                 .append("&usable=").append(this.getUsable() == null ? 0 : this.getUsable())
+                .append("&suspension=").append(this.getSuspension() == null ? 0 : this.getSuspension())
                 .append("&side=").append(this.getSide());
         return builder.toString();
     }
@@ -248,6 +274,8 @@ public class LemmingTask implements Task, Serializable {
                 t.setTransport(str.substring(10));
             } else if (str.startsWith("usable")) {
                 t.setUsable(Integer.valueOf(str.substring(7)));
+            } else if (str.startsWith("suspension")) {
+                t.setSuspension(Integer.valueOf(str.substring(11)));
             } else if (str.startsWith("side")) {
                 t.setSide(str.substring(5));
             }

@@ -8,9 +8,7 @@ import java.time.ZonedDateTime;
 import java.util.Iterator;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ThreadFactory;
@@ -56,14 +54,33 @@ public class LemmingWorker implements Worker {
                     return new Thread(r, "Worker_Processor_" + adder.incrementAndGet());
                 }
             });
+    /**
+     * 用于检测任务是否需要运行
+     */
+    private ScheduledExecutorService Run_Monitor = Executors.newSingleThreadScheduledExecutor(new ThreadFactory() {
 
-    private ScheduledExecutorService Run_Monitor = Executors.newSingleThreadScheduledExecutor();
+        @Override
+        public Thread newThread(Runnable r) {
+            return new Thread(r, "Run_Monitor");
+        }
+    });
 
     private final ConcurrentMap<String, LemmingTask> Workbook = new ConcurrentHashMap<>();
 
+    /**
+     * 是否繁忙
+     */
     private volatile boolean busy = false;
 
+    /**
+     * 是否暂停
+     */
     private volatile boolean suspension = false;
+
+    /**
+     * 是否下岗停用
+     */
+    private volatile boolean laidOff = false;
 
     /**
      * cron表达式解析器
@@ -71,18 +88,36 @@ public class LemmingWorker implements Worker {
     private static final CronParser Rule_Parser = new CronParser(
             CronDefinitionBuilder.instanceDefinitionFor(CronType.SPRING));
 
-    public LemmingWorker() {
+    private String name;
+
+    public LemmingWorker(String name) {
+        this.name = name;
         // 一直检测任务是否需要执行了
         Run_Monitor.scheduleAtFixedRate(() -> {
-            logger.debug("Task_Monitor checking task need run.");
+            // 暂停
+            if (this.suspension) {
+                return;
+            }
+            int taskNum = 0;
+            if (logger.isDebugEnabled()) {
+                logger.debug(" Task_Monitor checking task need run.");
+            }
             Iterator<LemmingTask> iter = Workbook.values().iterator();
             ZonedDateTime now = ZonedDateTime.now();
             while (iter.hasNext()) {
                 LemmingTask task = iter.next();
-                if (checkNeedRun(task, now) && !task.isRunning()) {
+                if (task.getUsable() == 0) {
+                    iter.remove();
+                }
+                taskNum++;
+                if (checkNeedRun(task, now)) {
                     handle(task);
                 }
             }
+            if (logger.isDebugEnabled()) {
+                logger.debug(" worker[" + this.name + "]包含task数:" + taskNum);
+            }
+
         }, 0, 1, TimeUnit.SECONDS);
     }
 
@@ -97,6 +132,10 @@ public class LemmingWorker implements Worker {
         if (StringUtil.isBlank(task.getRule())) {
             return false;
         }
+        if (task.isRunning() || task.getSuspension() == 1) {
+            return false;
+        }
+
         Cron cron = Rule_Parser.parse(task.getRule());
         ExecutionTime executionTime = ExecutionTime.forCron(cron);
         ZonedDateTime nextExecution = executionTime.nextExecution(now).get();
@@ -109,21 +148,28 @@ public class LemmingWorker implements Worker {
     @Override
     public void handle(LemmingTask task) {
         task.setRunning(true);
-        Future<?> future = Processor.submit(() -> {
+        Processor.submit(() -> {
             try {
                 Transporter transporter = SpiManager.defaultSpiExtender(Transporter.class);
                 transporter.call(task);
             } catch (Exception e) {
-                e.printStackTrace();
+                logger.error("call task failed:" + e);
+                try {
+                    // 记录调用失败次数
+                    // Storage storage = SpiManager.defaultSpiExtender(Storage.class);
+                    // storage.insertErrorLog(task.getTaskId(), e.getMessage());
+                } catch (Exception e2) {
+                    e2.printStackTrace();
+                }
             }
         });
-        if (task.isSync()) {
-            try {
-                future.get();
-            } catch (InterruptedException | ExecutionException e) {
-                e.printStackTrace();
-            }
-        }
+        // if (!task.isSync()) {
+        // try {
+        // future.get();
+        // } catch (InterruptedException | ExecutionException e) {
+        // e.printStackTrace();
+        // }
+        // }
         // TODO 应该有个方法判断是否繁忙
         if (Processor.getQueue().size() / Runtime.getRuntime().availableProcessors() > 4) {
             this.busy = true;
@@ -134,16 +180,27 @@ public class LemmingWorker implements Worker {
     }
 
     @Override
-    public void accept(LemmingTask task) {
+    public boolean accept(LemmingTask task) {
         if (task == null) {
-            return;
+            return false;
         }
         if (busy || suspension) {
-            return;
+            return false;
         }
-        if (!Workbook.containsKey(task.getTaskId())) {
-            Workbook.put(task.getTaskId(), task);
+        LemmingTask t = Workbook.get(task.getTaskId());
+        if (t == null) {
+            if (task.getDelFlag() == 0) {
+                Workbook.put(task.getTaskId(), task);
+            }
+        } else {
+            if (task.getUsable() == 0 || task.getDelFlag() == 1) {
+                Workbook.remove(task.getTaskId());
+                return false;
+            }
+            t.setRule(task.getRule());
+            t.setSuspension(task.getSuspension());
         }
+        return true;
     }
 
     @Override
@@ -153,7 +210,20 @@ public class LemmingWorker implements Worker {
 
     @Override
     public boolean isWorking() {
-        return Processor.getActiveCount() > 0 ? true : false;
+        if (Workbook.isEmpty()) {
+            return false;
+        }
+        Iterator<LemmingTask> iter = Workbook.values().iterator();
+        while (iter.hasNext()) {
+            LemmingTask task = iter.next();
+            if (task.getUsable() == 0) {
+                iter.remove();
+            }
+            if (task.isRunning() || task.getUsable() == 1 || task.getDelFlag() == 0) {
+                return true;
+            }
+        }
+        return Processor.getTaskCount() > 0 ? true : false;
     }
 
     @Override
@@ -163,7 +233,14 @@ public class LemmingWorker implements Worker {
 
     @Override
     public void laidOff() {
+        laidOff = true;
+        logger.info(" Begin worker[" + this.name + "] Run_Monitor shutdown.");
         Run_Monitor.shutdown();
-        Processor.shutdown();
+        logger.info(" Completed worker[" + this.name + "] Run_Monitor shutdown.");
+    }
+
+    @Override
+    public boolean isLaidOff() {
+        return this.laidOff;
     }
 }

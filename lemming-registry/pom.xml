@@ -10,7 +10,7 @@
     <artifactId>lemming-registry</artifactId>
     <packaging>pom</packaging>
     <modules>
-        <module>lemming-registry-zookeeper</module>
         <module>lemming-registry-api</module>
+        <module>lemming-registry-zookeeper</module>
     </modules>
 </project>

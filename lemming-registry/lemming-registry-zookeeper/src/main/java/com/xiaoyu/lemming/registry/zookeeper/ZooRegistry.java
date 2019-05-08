@@ -60,7 +60,7 @@ public class ZooRegistry extends AbstractRegistry {
 
                 @Override
                 public void handleSessionEstablishmentError(Throwable error) throws Exception {
-                    LOG.error("handleSessionEstablishmentError->", error);
+                    LOG.error("HandleSessionEstablishmentError->", error);
                 }
 
                 @Override
@@ -81,6 +81,7 @@ public class ZooRegistry extends AbstractRegistry {
         return tzoo == null ? false : true;
     }
 
+    // 仅用于server端监听
     @Override
     public void initServerListener() {
         // server启动时,监听新的task
@@ -150,8 +151,8 @@ public class ZooRegistry extends AbstractRegistry {
                 tasks.add(LemmingTask.toEntity(p));
             }
             try {
-//                Storage storage = SpiManager.defaultSpiExtender(Storage.class);
-//                storage.batchSave(tasks);
+                // Storage storage = SpiManager.defaultSpiExtender(Storage.class);
+                // storage.batchSave(tasks);
             } catch (Exception e) {
                 e.printStackTrace();
             }

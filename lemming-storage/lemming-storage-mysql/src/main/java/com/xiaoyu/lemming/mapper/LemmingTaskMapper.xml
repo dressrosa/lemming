@@ -9,18 +9,22 @@
         select
         a.id as id,
         a.task_id as taskId,
-        a.group as
+        a.`group`as
         "group",
         a.app as app,
         a.rule as rule,
         a.transport as transport,
         a.params as params,
         a.usable as
-        usable
+        usable,
+        a.suspension as suspension
         from biz_task as a
         where a.task_id =#{taskId}
-        and a.usable = 1
-        and a.del_flag=0
+        a.app = #{app}
+        and a.usable =
+        1
+        and
+        a.del_flag=0
     </select>
 
     <select id="getTasks" resultType="com.xiaoyu.lemming.core.api.LemmingTask"
@@ -28,12 +32,13 @@
         select
         a.id as id,
         a.task_id as taskId,
-        a.group as "group",
+        a.`group` as "group",
         a.app as app,
         a.rule as rule,
         a.transport as transport,
         a.params as params,
-        a.usable as usable
+        a.usable as usable,
+        a.suspension as suspension
         from biz_task as a
         where
         a.usable = 1
@@ -42,6 +47,54 @@
             and app = #{app}
         </if>
     </select>
+
+    <select id="getUpdatedTasks" resultType="com.xiaoyu.lemming.core.api.LemmingTask"
+        parameterType="java.lang.String">
+        select
+        a.id as id,
+        a.task_id as taskId,
+        a.`group` as "group",
+        a.app as app,
+        a.rule
+        as rule,
+        a.transport as transport,
+        a.params as params,
+        a.usable as usable,
+        a.suspension as
+        suspension
+        from biz_task as a
+        where
+        a.update_date > TIMESTAMP(#{updateDate})
+    </select>
+
+    <insert id="insert" parameterType="com.xiaoyu.lemming.core.api.LemmingTask">
+        insert into biz_task(
+        task_id,
+        `group`,
+        app,
+        rule,
+        transport,
+        params,
+        usable,
+        suspension
+        )
+        values
+        (
+        #{item.taskId},
+        #{item.group},
+        #{item.app},
+        #{item.rule},
+        #{item.transport},
+        <choose>
+            <when test="item.params != null">
+                #{item.params},
+            </when>
+            <otherwise>'',</otherwise>
+        </choose>
+        #{item.usable},
+        #{item.suspension}
+        )
+    </insert>
 
     <insert id="batchInsert" parameterType="java.util.List">
         insert into biz_task(
@@ -67,7 +120,8 @@
                 </when>
                 <otherwise>'',</otherwise>
             </choose>
-            #{item.usable}
+            #{item.usable},
+            #{item.suspension}
             )
         </foreach>
     </insert>
@@ -83,7 +137,7 @@
             </foreach>
             ,
         </if>
-        where is_deleted = 0
+        where del_flag = 0
         <if test="list[0].id != null">
             and id in
             <foreach collection="list" item="item" index="index" open="(" separator=","

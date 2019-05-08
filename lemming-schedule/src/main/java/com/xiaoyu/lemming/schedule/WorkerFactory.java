@@ -3,13 +3,14 @@
  */
 package com.xiaoyu.lemming.schedule;
 
-import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 
 import org.slf4j.Logger;
@@ -28,7 +29,14 @@ public class WorkerFactory {
 
     private static final ConcurrentMap<String, List<Worker>> Workers = new ConcurrentHashMap<>();
 
-    private static ScheduledExecutorService Worker_Monitor = Executors.newSingleThreadScheduledExecutor();
+    private static ScheduledExecutorService Worker_Monitor = Executors
+            .newSingleThreadScheduledExecutor(new ThreadFactory() {
+
+                @Override
+                public Thread newThread(Runnable r) {
+                    return new Thread(r, "Worker_Monitor");
+                }
+            });
 
     public WorkerFactory() {
     }
@@ -36,25 +44,32 @@ public class WorkerFactory {
     public void startMonitor() {
         // 每分钟检测是否有空闲的worker需要去掉
         Worker_Monitor.scheduleAtFixedRate(() -> {
-            logger.info("当前worker数:" + Workers.size());
+            logger.info("当前App数:" + Workers.size());
+            int workerNum = 0;
             Iterator<List<Worker>> iter = Workers.values().iterator();
             while (iter.hasNext()) {
-                Iterator<Worker> workers = iter.next().iterator();
-                workers.forEachRemaining(w -> {
+                List<Worker> workers = iter.next();
+                Iterator<Worker> witer = workers.iterator();
+                while (witer.hasNext()) {
+                    Worker w = witer.next();
                     if (!w.isBusy() && !w.isWorking()) {
                         w.suspend(true);
                         if (!w.isWorking()) {
                             w.laidOff();
-                            workers.remove();
-                            w = null;
+                            witer.remove();
+                            logger.info(" 去除one worker");
                         } else {
                             w.suspend(false);
                         }
                     }
-                });
+                }
+                if (workers.isEmpty()) {
+                    iter.remove();
+                }
+                workerNum += workers.size();
             }
-
-        }, 0, 60, TimeUnit.SECONDS);
+            logger.info("当前worker数:" + workerNum);
+        }, 10, 60, TimeUnit.SECONDS);
     }
 
     /**
@@ -67,17 +82,19 @@ public class WorkerFactory {
         List<Worker> workers = Workers.get(app);
         Worker worker = null;
         if (workers == null) {
-            workers = new ArrayList<>();
+            workers = new LinkedList<>();
             Workers.put(app, workers);
         }
-        for (Worker w : workers) {
+        Iterator<Worker> iter = workers.iterator();
+        while (iter.hasNext()) {
+            Worker w = iter.next();
             if (!w.isBusy()) {
                 worker = w;
                 break;
             }
         }
         if (worker == null) {
-            worker = new LemmingWorker();
+            worker = new LemmingWorker(app);
             workers.add(worker);
         }
         return worker;

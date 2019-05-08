@@ -10,5 +10,4 @@ package com.xiaoyu.lemming.core.api;
  */
 public interface Task {
 
-    void afterFailed();
 }
