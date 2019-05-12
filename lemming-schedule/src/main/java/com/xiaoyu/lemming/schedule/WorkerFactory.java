@@ -57,7 +57,7 @@ public class WorkerFactory {
                         if (!w.isWorking()) {
                             w.laidOff();
                             witer.remove();
-                            logger.info(" 去除one worker");
+                            logger.info(" worker[" + w.name() + "] is removed");
                         } else {
                             w.suspend(false);
                         }
@@ -69,7 +69,7 @@ public class WorkerFactory {
                 workerNum += workers.size();
             }
             logger.info("当前worker数:" + workerNum);
-        }, 10, 60, TimeUnit.SECONDS);
+        }, 60, 60, TimeUnit.SECONDS);
     }
 
     /**

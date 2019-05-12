@@ -21,6 +21,9 @@ import org.apache.ibatis.type.JdbcType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.xiaoyu.lemming.common.constant.ExecuteStateEnum;
+import com.xiaoyu.lemming.common.entity.ExecuteResult;
+import com.xiaoyu.lemming.common.entity.LemmingTaskLog;
 import com.xiaoyu.lemming.common.util.TimeUtils;
 import com.xiaoyu.lemming.core.api.LemmingTask;
 import com.xiaoyu.lemming.mapper.LemmingTaskMapper;
@@ -175,6 +178,28 @@ public class MysqlStorage implements Storage {
         }
         return tasks;
 
+    }
+
+    @Override
+    public int saveLog(LemmingTask task, ExecuteResult ret) {
+        LemmingTaskLog taskLog = new LemmingTaskLog();
+        taskLog.setGroup(task.getGroup())
+                .setApp(task.getApp()).setTaskId(task.getTaskId())
+                .setMessage(ret.getMessage());
+        if (ret.isSuccess()) {
+            taskLog.setState(ExecuteStateEnum.Success.ordinal());
+        } else {
+            taskLog.setState(ExecuteStateEnum.Failed.ordinal());
+        }
+        SqlSession session = this.sqlSessionFactory.openSession();
+        try {
+            LemmingTaskMapper mapper = session.getMapper(LemmingTaskMapper.class);
+            mapper.insertLog(taskLog);
+            session.commit();
+        } finally {
+            session.close();
+        }
+        return 1;
     }
 
 }

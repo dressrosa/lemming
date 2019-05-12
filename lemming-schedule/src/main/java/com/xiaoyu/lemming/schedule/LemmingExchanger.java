@@ -40,6 +40,9 @@ public class LemmingExchanger implements Exchanger {
     // taskId_group->task 存放client启动时标注的任务
     // private static final Map<String, LemmingTask> All_Tasks = new HashMap<>();
 
+    /**
+     * 监测新的任务
+     */
     private static ScheduledExecutorService Storage_Monitor = Executors.newSingleThreadScheduledExecutor();
 
     private void startInspect() {
@@ -52,9 +55,12 @@ public class LemmingExchanger implements Exchanger {
             } catch (Exception e) {
                 e.printStackTrace();
             }
-        }, 0, 5, TimeUnit.SECONDS);
+        }, 5, 5, TimeUnit.SECONDS);
     }
 
+    /**
+     * 拉取所有数据
+     */
     private void init() {
         try {
             Storage storage = SpiManager.defaultSpiExtender(Storage.class);
@@ -64,7 +70,6 @@ public class LemmingExchanger implements Exchanger {
         } catch (Exception e) {
             e.printStackTrace();
         }
-
     }
 
     @Override
@@ -93,7 +98,9 @@ public class LemmingExchanger implements Exchanger {
                 viter.remove();
             }
         }
-        logger.info("目前更新任务数:" + taskNum);
+        if (taskNum > 0) {
+            logger.info("目前更新任务数:" + taskNum);
+        }
     }
 
     @Override

@@ -24,10 +24,12 @@ import com.cronutils.model.CronType;
 import com.cronutils.model.definition.CronDefinitionBuilder;
 import com.cronutils.model.time.ExecutionTime;
 import com.cronutils.parser.CronParser;
+import com.xiaoyu.lemming.common.entity.ExecuteResult;
 import com.xiaoyu.lemming.common.extension.SpiManager;
 import com.xiaoyu.lemming.common.util.StringUtil;
 import com.xiaoyu.lemming.core.api.LemmingTask;
 import com.xiaoyu.lemming.core.api.Worker;
+import com.xiaoyu.lemming.storage.Storage;
 import com.xiaoyu.lemming.transport.Transporter;
 
 /**
@@ -39,6 +41,11 @@ public class LemmingWorker implements Worker {
 
     private static final Logger logger = LoggerFactory.getLogger(LemmingWorker.class);
 
+    /**
+     * cron表达式解析器
+     */
+    private static final CronParser Rule_Parser = new CronParser(
+            CronDefinitionBuilder.instanceDefinitionFor(CronType.SPRING));
     /**
      * 所有worker共享一个线程池
      */
@@ -58,13 +65,15 @@ public class LemmingWorker implements Worker {
      * 用于检测任务是否需要运行
      */
     private ScheduledExecutorService Run_Monitor = Executors.newSingleThreadScheduledExecutor(new ThreadFactory() {
-
         @Override
         public Thread newThread(Runnable r) {
             return new Thread(r, "Run_Monitor");
         }
     });
 
+    /**
+     * 用于存放任务
+     */
     private final ConcurrentMap<String, LemmingTask> Workbook = new ConcurrentHashMap<>();
 
     /**
@@ -83,11 +92,8 @@ public class LemmingWorker implements Worker {
     private volatile boolean laidOff = false;
 
     /**
-     * cron表达式解析器
+     * worker name,用作标识
      */
-    private static final CronParser Rule_Parser = new CronParser(
-            CronDefinitionBuilder.instanceDefinitionFor(CronType.SPRING));
-
     private String name;
 
     public LemmingWorker(String name) {
@@ -118,7 +124,7 @@ public class LemmingWorker implements Worker {
                 logger.debug(" worker[" + this.name + "]包含task数:" + taskNum);
             }
 
-        }, 0, 1, TimeUnit.SECONDS);
+        }, 1, 1, TimeUnit.SECONDS);
     }
 
     /**
@@ -135,7 +141,6 @@ public class LemmingWorker implements Worker {
         if (task.isRunning() || task.getSuspension() == 1) {
             return false;
         }
-
         Cron cron = Rule_Parser.parse(task.getRule());
         ExecutionTime executionTime = ExecutionTime.forCron(cron);
         ZonedDateTime nextExecution = executionTime.nextExecution(now).get();
@@ -151,13 +156,20 @@ public class LemmingWorker implements Worker {
         Processor.submit(() -> {
             try {
                 Transporter transporter = SpiManager.defaultSpiExtender(Transporter.class);
-                transporter.call(task);
+                ExecuteResult callRet = transporter.call(task);
+                // 记录调用
+                Storage storage = SpiManager.defaultSpiExtender(Storage.class);
+                if (callRet.isSuccess()) {
+                    storage.saveLog(task, callRet);
+                } else {
+                    storage.saveLog(task, callRet);
+                }
             } catch (Exception e) {
-                logger.error("call task failed:" + e);
+                logger.error(" Call task[" + task.getTaskId() + "] failed:" + e);
                 try {
                     // 记录调用失败次数
-                    // Storage storage = SpiManager.defaultSpiExtender(Storage.class);
-                    // storage.insertErrorLog(task.getTaskId(), e.getMessage());
+                    Storage storage = SpiManager.defaultSpiExtender(Storage.class);
+                    storage.saveLog(task, new ExecuteResult());
                 } catch (Exception e2) {
                     e2.printStackTrace();
                 }
@@ -195,10 +207,20 @@ public class LemmingWorker implements Worker {
         } else {
             if (task.getUsable() == 0 || task.getDelFlag() == 1) {
                 Workbook.remove(task.getTaskId());
+                return true;
+            }
+            boolean changed = false;
+            if (!t.getRule().equals(task.getRule())) {
+                t.setRule(task.getRule());
+                changed = true;
+            }
+            if (t.getSuspension() != task.getSuspension()) {
+                t.setSuspension(task.getSuspension());
+                changed = true;
+            }
+            if (!changed) {
                 return false;
             }
-            t.setRule(task.getRule());
-            t.setSuspension(task.getSuspension());
         }
         return true;
     }
@@ -242,5 +264,10 @@ public class LemmingWorker implements Worker {
     @Override
     public boolean isLaidOff() {
         return this.laidOff;
+    }
+
+    @Override
+    public String name() {
+        return this.name;
     }
 }

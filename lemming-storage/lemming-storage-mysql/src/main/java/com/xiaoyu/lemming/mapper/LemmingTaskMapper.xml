@@ -146,4 +146,24 @@
             </foreach>
         </if>
     </update>
+
+
+    <!--log -->
+    <insert id="insertLog" parameterType="com.xiaoyu.lemming.common.entity.LemmingTaskLog">
+        insert into biz_task_log(
+        `group`,
+        app,
+        task_id,
+        state,
+        message
+        )
+        values
+        (
+        #{group},
+        #{app},
+        #{taskId},
+        #{state},
+        #{message}
+        )
+    </insert>
 </mapper>

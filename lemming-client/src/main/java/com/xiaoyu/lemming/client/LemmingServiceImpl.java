@@ -8,7 +8,9 @@ import java.lang.reflect.Method;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.xiaoyu.beacon.common.utils.NetUtil;
 import com.xiaoyu.lemming.common.constant.CommonConstant;
+import com.xiaoyu.lemming.common.entity.ExecuteResult;
 import com.xiaoyu.lemming.common.extension.SpiManager;
 import com.xiaoyu.lemming.core.api.Context;
 import com.xiaoyu.lemming.core.api.LemmingTask;
@@ -26,17 +28,22 @@ public class LemmingServiceImpl implements LemmingService {
     private static final Logger logger = LoggerFactory.getLogger(LemmingServiceImpl.class);
 
     @Override
-    public boolean handleTask(LemmingTask req) throws Exception {
+    public ExecuteResult handleTask(LemmingTask req) throws Exception {
+        ExecuteResult ret = new ExecuteResult();
         Context context = SpiManager.defaultSpiExtender(Context.class);
         LemmingTask task = context.getLocalTask(req.getTaskId(), req.getGroup());
         if (task == null) {
-            logger.error("none task exist which taskId is '" + req.getTaskId() + "'");
-            return false;
+            logger.error(" None task exist which taskId is '" + req.getTaskId() + "'");
+            ret.setSuccess(false).setMessage(
+                    " Task[" + req.getTaskId() + "] not exist  in mathine " + NetUtil.localIP());
+            return ret;
         }
         if (task.isRunning()) {
-            logger.warn("task->" + req.getTaskId() + " is running .");
-            return true;
             // TODO
+            logger.warn(" Task->" + req.getTaskId() + " is running .");
+            ret.setSuccess(true)
+                    .setMessage(" Task[" + req.getTaskId() + "] is running in mathine " + NetUtil.localIP());
+            return ret;
         }
         try {
             Object proxy = task.getProxy();
@@ -54,7 +61,8 @@ public class LemmingServiceImpl implements LemmingService {
                     if (d.getName().equals(CommonConstant.Task_Method)) {
                         task.setRunning(true);
                         d.invoke(proxy, req.getParams());
-                        return true;
+                        ret.setSuccess(true).setMessage("succes in mathine " + NetUtil.localIP());
+                        return ret;
                     }
                 }
             } else {
@@ -64,18 +72,21 @@ public class LemmingServiceImpl implements LemmingService {
                     if (d.getName().equals(CommonConstant.Task_Method)) {
                         task.setRunning(true);
                         d.invoke(target.newInstance(), req.getParams());
-                        return true;
+                        ret.setSuccess(true).setMessage("success in mathine " + NetUtil.localIP());
+                        return ret;
                     }
                 }
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error(" Task->" + req.getTaskId() + " execute failed:" + e);
+            ret.setSuccess(false).setMessage(" Task[" + req.getTaskId() + "] execute failed:" + e.getMessage());
+            return ret;
         } finally {
             if (task.isRunning()) {
                 task.setRunning(false);
             }
         }
-        return false;
+        return ret;
     }
 
 }

@@ -49,5 +49,7 @@ public interface Worker {
     void laidOff();
     
     boolean isLaidOff();
+    
+    String name();
 
 }

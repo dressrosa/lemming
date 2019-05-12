@@ -3,6 +3,7 @@
  */
 package com.xiaoyu.lemming.transport;
 
+import com.xiaoyu.lemming.common.entity.ExecuteResult;
 import com.xiaoyu.lemming.core.api.LemmingTask;
 
 /**
@@ -14,5 +15,5 @@ import com.xiaoyu.lemming.core.api.LemmingTask;
  */
 public interface LemmingService {
 
-    public boolean handleTask(LemmingTask task) throws Exception;
+    public ExecuteResult handleTask(LemmingTask task) throws Exception;
 }

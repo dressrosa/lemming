@@ -2,6 +2,7 @@ package com.xiaoyu.lemming.storage;
 
 import java.util.List;
 
+import com.xiaoyu.lemming.common.entity.ExecuteResult;
 import com.xiaoyu.lemming.core.api.LemmingTask;
 
 /**
@@ -24,4 +25,6 @@ public interface Storage {
     List<LemmingTask> fetchAllTasks();
 
     List<LemmingTask> fetchUpdatedTasks();
+
+    int saveLog(LemmingTask task, ExecuteResult callRet);
 }

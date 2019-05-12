@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.apache.ibatis.annotations.Param;
 
+import com.xiaoyu.lemming.common.entity.LemmingTaskLog;
 import com.xiaoyu.lemming.core.api.LemmingTask;
 
 public interface LemmingTaskMapper {
@@ -18,4 +19,5 @@ public interface LemmingTaskMapper {
 
     List<LemmingTask> getUpdatedTasks(@Param("updateDate") String updateDate);
 
+    int insertLog(LemmingTaskLog taskLog);
 }

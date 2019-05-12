@@ -3,6 +3,7 @@
  */
 package com.xiaoyu.lemming.transport;
 
+import com.xiaoyu.lemming.common.entity.ExecuteResult;
 import com.xiaoyu.lemming.core.api.LemmingTask;
 
 /**
@@ -14,7 +15,7 @@ public interface Transporter {
 
     void callback(LemmingTask task);
 
-    void call(LemmingTask task);
+    ExecuteResult call(LemmingTask task) throws Exception;
     
     void export();
 }

@@ -11,6 +11,7 @@ import com.xiaoyu.beacon.proxy.common.GenericRequestLauncher;
 import com.xiaoyu.beacon.rpc.service.GenericService;
 import com.xiaoyu.beacon.spring.config.BeaconExporter;
 import com.xiaoyu.lemming.common.constant.CommonConstant;
+import com.xiaoyu.lemming.common.entity.ExecuteResult;
 import com.xiaoyu.lemming.core.api.LemmingTask;
 
 /**
@@ -28,7 +29,7 @@ public class BeaconTransporter implements Transporter {
     }
 
     @Override
-    public void call(LemmingTask task) {
+    public ExecuteResult call(LemmingTask task) throws Exception {
         GenericReference ref = new GenericReference();
         ref.setInterfaceName(CommonConstant.Lemming_Service);
         ref.setGroup(CommonConstant.Lemming_Group);
@@ -36,18 +37,20 @@ public class BeaconTransporter implements Transporter {
         try {
             GenericService generic = GenericRequestLauncher.launch(ref);
             Object result = generic.$_$invoke(CommonConstant.Task_Method, Boolean.class, new Object[] { task });
-            if (result instanceof Boolean) {
-                boolean ret = (Boolean) result;
-                if (ret) {
-                    System.out.println(" Task:" + task.getTaskId() + " do success");
+            if (result instanceof ExecuteResult) {
+                ExecuteResult ret = (ExecuteResult) result;
+                if (ret.isSuccess()) {
+                    logger.info(" Task:" + task.getTaskId() + " do success:" + ret.getMessage());
                 } else {
-                    System.out.println(" Task:" + task.getTaskId() + " do failed");
+                    logger.info(" Task:" + task.getTaskId() + " do failed:" + ret.getMessage());
                 }
+                return ret;
             }
         } catch (Exception e) {
-            //
             logger.error(" Task[" + task.getTaskId() + "] Call task client failed:" + e);
+            throw e;
         }
+        return new ExecuteResult();
     }
 
     @Override

@@ -3,6 +3,7 @@
  */
 package com.xiaoyu.lemming.transport;
 
+import com.xiaoyu.lemming.common.entity.ExecuteResult;
 import com.xiaoyu.lemming.core.api.LemmingTask;
 
 /**
@@ -11,12 +12,6 @@ import com.xiaoyu.lemming.core.api.LemmingTask;
  * @description
  */
 public class DubboTransporter implements Transporter {
-
-    @Override
-    public void call(LemmingTask task) {
-        // TODO Auto-generated method stub
-
-    }
 
     @Override
     public void export() {
@@ -28,6 +23,12 @@ public class DubboTransporter implements Transporter {
     public void callback(LemmingTask task) {
         // TODO Auto-generated method stub
 
+    }
+
+    @Override
+    public ExecuteResult call(LemmingTask task) throws Exception {
+        // TODO Auto-generated method stub
+        return null;
     }
 
 }
