@@ -13,7 +13,7 @@
             <xsd:attribute name="protocol" type="string" use="required" />
         </xsd:complexType>
     </xsd:element>
-    
+
     <xsd:element name="context">
         <xsd:complexType>
             <xsd:attribute name="name" type="string" use="required" />
@@ -22,26 +22,12 @@
         </xsd:complexType>
     </xsd:element>
 
-    <!--引用接口beacon-reference -->
-<!--     <xsd:element name="reference">
-        <xsd:complexType>
-            <xsd:attribute name="id" type="string" />
-            <xsd:attribute name="interfaceName" type="string" />
-            <xsd:attribute name="timeout" type="positiveInteger" default="3000" use="optional" />
-            <xsd:attribute name="retry" type="nonNegativeInteger" default="0" use="optional" />
-            <xsd:attribute name="check" type="boolean" default="false" use="optional" />
-            <xsd:attribute name="tolerant" type="string" default="failfast" use="optional" />
-            <xsd:attribute name="group" type="string" use="optional" />
-        </xsd:complexType>
-    </xsd:element> -->
- 
     <!--引用接口lemming-task -->
     <xsd:element name="task">
         <xsd:complexType>
             <xsd:attribute name="taskId" type="string" use="required" />
-            <xsd:attribute name="group" type="string" use="optional" default=""/>
-            <xsd:attribute name="rule" type="string" use="optional" default=""/>
-            <xsd:attribute name="protocol" type="string" use="optional" default=""/>
+            <xsd:attribute name="rule" type="string" use="optional" default="" />
+            <xsd:attribute name="protocol" type="string" use="optional" default="" />
             <xsd:attribute name="taskImpl" type="string" use="required" />
         </xsd:complexType>
     </xsd:element>

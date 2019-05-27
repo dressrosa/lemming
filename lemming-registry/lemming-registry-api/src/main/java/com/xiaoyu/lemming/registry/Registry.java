@@ -36,25 +36,22 @@ public interface Registry {
     boolean isInit();
 
     /**
-     * 发现服务
-     * 
-     * @param service
-     * @return
-     */
-    boolean discoverService(String service);
-
-    /**
      * 注册任务
      * 
      * @param service
      */
     void registerTask(LemmingTask task);
-    
+
     void initServerListener();
 
     List<String> getAllTask();
 
     void storeLocalTask(LemmingTask task);
 
-    LemmingTask getLocalTask(String taskId);
+    /**
+     * @param app
+     * @param taskId
+     * @return
+     */
+    LemmingTask getLocalTask(String app, String taskId);
 }

@@ -39,7 +39,7 @@ public class ZooRegistry extends AbstractRegistry {
     private ZooUtil zoo;
 
     /**
-     * consumer or provider path -> listener
+     * client or server path -> listener
      */
     private static final ConcurrentMap<String, IZkChildListener> CHILD_LISTENER_MAP = new ConcurrentHashMap<>(32);
 
@@ -243,12 +243,6 @@ public class ZooRegistry extends AbstractRegistry {
         StringBuilder builder = new StringBuilder();
         builder.append(ROOT).append("/").append(service).append(CLIENTS);
         return builder.toString();
-    }
-
-    @Override
-    public boolean discoverService(String service) {
-        // TODO Auto-generated method stub
-        return false;
     }
 
 }

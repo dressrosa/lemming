@@ -65,7 +65,7 @@ public class MysqlStorage implements Storage {
         SqlSession session = this.sqlSessionFactory.openSession();
         try {
             LemmingTaskMapper mapper = session.getMapper(LemmingTaskMapper.class);
-            List<LemmingTask> list = mapper.getTasks(tasks.get(0).getApp());
+            List<LemmingTask> list = mapper.getTasks(tasks.get(0).getGroup());
             Map<String, LemmingTask> map = list.stream().collect(Collectors.toMap(LemmingTask::getTaskId, a -> a));
             List<LemmingTask> insertList = new ArrayList<>();
             for (LemmingTask t : tasks) {

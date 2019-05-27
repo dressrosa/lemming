@@ -17,6 +17,8 @@ public class LemmingTask implements Task, Serializable {
 
     // 任务id
     private String taskId;
+    // 名称
+    private String name;
     // 任务所属组别
     private String group;
     // 任务所属应用
@@ -42,10 +44,19 @@ public class LemmingTask implements Task, Serializable {
     private Object proxy;
     // 是否正在运行
     private volatile boolean running;
-    // 是否异步
+    // 是否同步
     private boolean sync;
     // 是否暂停
     private Integer suspension;
+
+    public String getName() {
+        return name;
+    }
+
+    public LemmingTask setName(String name) {
+        this.name = name;
+        return this;
+    }
 
     public Integer getSuspension() {
         return suspension;

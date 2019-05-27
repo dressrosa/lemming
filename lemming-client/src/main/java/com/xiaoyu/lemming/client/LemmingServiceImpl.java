@@ -4,6 +4,7 @@
 package com.xiaoyu.lemming.client;
 
 import java.lang.reflect.Method;
+import java.util.concurrent.Future;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,62 +32,72 @@ public class LemmingServiceImpl implements LemmingService {
     public ExecuteResult handleTask(LemmingTask req) throws Exception {
         ExecuteResult ret = new ExecuteResult();
         Context context = SpiManager.defaultSpiExtender(Context.class);
-        LemmingTask task = context.getLocalTask(req.getTaskId(), req.getGroup());
+        LemmingTask task = context.getLocalTask(req.getApp(), req.getTaskId());
         if (task == null) {
             logger.error(" None task exist which taskId is '" + req.getTaskId() + "'");
             ret.setSuccess(false).setMessage(
-                    " Task[" + req.getTaskId() + "] not exist  in mathine " + NetUtil.localIP());
+                    " Task[" + req.getApp() + ":" + req.getTaskId() + "] not exist  in mathine " + NetUtil.localIP());
             return ret;
         }
         if (task.isRunning()) {
             // TODO
-            logger.warn(" Task->" + req.getTaskId() + " is running .");
+            logger.warn(" Task->" + req.getTaskId() + " is running.");
             ret.setSuccess(true)
                     .setMessage(" Task[" + req.getTaskId() + "] is running in mathine " + NetUtil.localIP());
             return ret;
         }
-        try {
-            Object proxy = task.getProxy();
-            if (proxy != null) {
-                Class<?> cl1 = proxy.getClass();
-                Method[] methods = null;
-                // spring java原生代理
-                if (cl1.getName().equals(task.getTaskImpl())) {
-                    methods = cl1.getMethods();
-                } else {
-                    // spring cglib代理
-                    methods = cl1.getSuperclass().getDeclaredMethods();
-                }
-                for (Method d : methods) {
-                    if (d.getName().equals(CommonConstant.Task_Method)) {
-                        task.setRunning(true);
-                        d.invoke(proxy, req.getParams());
-                        ret.setSuccess(true).setMessage("succes in mathine " + NetUtil.localIP());
-                        return ret;
-                    }
-                }
-            } else {
-                Class<?> target = Class.forName(task.getTaskImpl());
-                Method[] methods = target.getDeclaredMethods();
-                for (Method d : methods) {
-                    if (d.getName().equals(CommonConstant.Task_Method)) {
-                        task.setRunning(true);
-                        d.invoke(target.newInstance(), req.getParams());
-                        ret.setSuccess(true).setMessage("success in mathine " + NetUtil.localIP());
-                        return ret;
-                    }
-                }
-            }
-        } catch (Exception e) {
-            logger.error(" Task->" + req.getTaskId() + " execute failed:" + e);
-            ret.setSuccess(false).setMessage(" Task[" + req.getTaskId() + "] execute failed:" + e.getMessage());
-            return ret;
-        } finally {
-            if (task.isRunning()) {
-                task.setRunning(false);
-            }
-        }
-        return ret;
+        return process(context, task, req);
     }
 
+    private ExecuteResult process(Context context, LemmingTask task, LemmingTask req) throws Exception {
+        Future<ExecuteResult> future = ((ClientContext) context).getProcessor().submit(() -> {
+            ExecuteResult ret = new ExecuteResult();
+            try {
+                Object proxy = task.getProxy();
+                if (proxy != null) {
+                    Class<?> cl1 = proxy.getClass();
+                    Method[] methods = null;
+                    // spring java原生代理
+                    if (cl1.getName().equals(task.getTaskImpl())) {
+                        methods = cl1.getMethods();
+                    } else {
+                        // spring cglib代理
+                        methods = cl1.getSuperclass().getDeclaredMethods();
+                    }
+                    for (Method d : methods) {
+                        if (d.getName().equals(CommonConstant.Task_Method)) {
+                            task.setRunning(true);
+                            d.invoke(proxy, req.getParams());
+                            ret.setSuccess(true).setMessage("success in mathine " + NetUtil.localIP());
+                            return ret;
+                        }
+                    }
+                } else {
+                    Class<?> target = Class.forName(task.getTaskImpl());
+                    Method[] methods = target.getDeclaredMethods();
+                    for (Method d : methods) {
+                        if (d.getName().equals(CommonConstant.Task_Method)) {
+                            task.setRunning(true);
+                            d.invoke(target.newInstance(), req.getParams());
+                            ret.setSuccess(true).setMessage("success in mathine " + NetUtil.localIP());
+                            return ret;
+                        }
+                    }
+                }
+            } catch (Exception e) {
+                logger.error(" Task->" + req.getTaskId() + " execute failed:" + e);
+                ret.setSuccess(false).setMessage(" Task[" + req.getTaskId() + "] execute failed:" + e.getMessage());
+                return ret;
+            } finally {
+                if (task.isRunning()) {
+                    task.setRunning(false);
+                }
+            }
+            return ret;
+        });
+        if (task.isSync()) {
+            return future.get();
+        }
+        return new ExecuteResult().setSuccess(true).setMessage("异步执行");
+    }
 }

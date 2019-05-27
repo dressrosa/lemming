@@ -7,8 +7,6 @@ package com.xiaoyu.lemming.spring.config;
 public class Task {
     // 任务id
     private String taskId;
-    // 任务所属组别
-    private String group;
     // 任务所属应用
     private String app;
     // 执行规则
@@ -24,15 +22,6 @@ public class Task {
 
     public Task setTaskId(String taskId) {
         this.taskId = taskId;
-        return this;
-    }
-
-    public String getGroup() {
-        return group;
-    }
-
-    public Task setGroup(String group) {
-        this.group = group;
         return this;
     }
 

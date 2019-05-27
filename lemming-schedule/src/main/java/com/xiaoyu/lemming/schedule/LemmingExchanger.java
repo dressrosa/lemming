@@ -34,7 +34,7 @@ public class LemmingExchanger implements Exchanger {
 
     private static final WorkerFactory workerFactory = new WorkerFactory();
 
-    // app->taskList 存放server端要执行的任务 同一个任务可能存在多份
+    // group->taskList 存放server端要执行的任务 同一个任务可能存在多份
     private static final Map<String, Queue<LemmingTask>> Appending_Task_Map = new HashMap<>();
 
     // taskId_group->task 存放client启动时标注的任务
@@ -64,7 +64,7 @@ public class LemmingExchanger implements Exchanger {
     private void init() {
         try {
             Storage storage = SpiManager.defaultSpiExtender(Storage.class);
-            // 应该分页取
+            // TODO 应该分页取
             List<LemmingTask> tasks = storage.fetchAllTasks();
             allocate(tasks);
         } catch (Exception e) {
@@ -78,11 +78,11 @@ public class LemmingExchanger implements Exchanger {
             return;
         }
         for (LemmingTask task : tasks) {
-            Queue<LemmingTask> tqueue = Appending_Task_Map.get(task.getApp());
+            Queue<LemmingTask> tqueue = Appending_Task_Map.get(task.getGroup());
             if (tqueue == null) {
-                Appending_Task_Map.put(task.getApp(), new LinkedBlockingQueue<>());
+                Appending_Task_Map.put(task.getGroup(), new LinkedBlockingQueue<>());
             }
-            Appending_Task_Map.get(task.getApp()).add(task);
+            Appending_Task_Map.get(task.getGroup()).add(task);
         }
         int taskNum = 0;
         Iterator<Entry<String, Queue<LemmingTask>>> iter = Appending_Task_Map.entrySet().iterator();

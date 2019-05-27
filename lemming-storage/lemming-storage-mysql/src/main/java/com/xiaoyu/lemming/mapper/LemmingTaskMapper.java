@@ -9,9 +9,9 @@ import com.xiaoyu.lemming.core.api.LemmingTask;
 
 public interface LemmingTaskMapper {
 
-    LemmingTask getOneTask(@Param("app") String app, @Param("taskId") String taskId);
+    LemmingTask getOneTask(@Param("group") String group, @Param("taskId") String taskId);
 
-    List<LemmingTask> getTasks(@Param("app") String app);
+    List<LemmingTask> getTasks(@Param("group") String group);
 
     int insert(LemmingTask task);
 

@@ -65,10 +65,10 @@ public class ServerContext implements Context {
     }
 
     @Override
-    public LemmingTask getLocalTask(String taskId, String group) {
+    public LemmingTask getLocalTask(String app, String taskId) {
         try {
             registry = SpiManager.defaultSpiExtender(Registry.class);
-            final LemmingTask task = registry.getLocalTask(taskId);
+            final LemmingTask task = registry.getLocalTask(app, taskId);
             return task;
         } catch (Exception e) {
             e.printStackTrace();

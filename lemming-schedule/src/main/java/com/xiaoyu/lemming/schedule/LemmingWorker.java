@@ -106,7 +106,7 @@ public class LemmingWorker implements Worker {
             }
             int taskNum = 0;
             if (logger.isDebugEnabled()) {
-                logger.debug(" Task_Monitor checking task need run.");
+                logger.debug(" Task_Monitor begin checking task need run.");
             }
             Iterator<LemmingTask> iter = Workbook.values().iterator();
             ZonedDateTime now = ZonedDateTime.now();
@@ -175,13 +175,6 @@ public class LemmingWorker implements Worker {
                 }
             }
         });
-        // if (!task.isSync()) {
-        // try {
-        // future.get();
-        // } catch (InterruptedException | ExecutionException e) {
-        // e.printStackTrace();
-        // }
-        // }
         // TODO 应该有个方法判断是否繁忙
         if (Processor.getQueue().size() / Runtime.getRuntime().availableProcessors() > 4) {
             this.busy = true;

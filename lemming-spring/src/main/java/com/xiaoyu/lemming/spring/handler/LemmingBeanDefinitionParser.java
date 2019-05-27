@@ -142,16 +142,12 @@ public class LemmingBeanDefinitionParser extends AbstractSimpleBeanDefinitionPar
         String taskId = element.getAttribute("taskId");
         element.setAttribute("id", "task_config_" + taskId);
         String taskImpl = element.getAttribute("taskImpl");
-        String group = element.getAttribute("group");
         String rule = element.getAttribute("rule");
         if (StringUtil.isBlank(taskId)) {
             throw new Exception(" TaskId cannot be null in xml tag->" + element.getTagName());
         }
         if (StringUtil.isBlank(taskImpl)) {
             throw new Exception(" TaskImpl cannot be null in xml tag->" + element.getTagName());
-        }
-        if (StringUtil.isBlank(group)) {
-            group = "";
         }
         // 检查合法性
         try {
@@ -163,7 +159,7 @@ public class LemmingBeanDefinitionParser extends AbstractSimpleBeanDefinitionPar
             // 注册服务
             LemmingTask task = new LemmingTask();
             task.setTaskId(taskId)
-                    .setGroup(group)
+                    .setGroup("")
                     .setTaskImpl(taskImpl)
                     .setRule(rule == null ? "" : rule)
                     .setParams(null)

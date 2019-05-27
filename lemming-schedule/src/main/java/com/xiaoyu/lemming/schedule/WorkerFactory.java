@@ -44,7 +44,7 @@ public class WorkerFactory {
     public void startMonitor() {
         // 每分钟检测是否有空闲的worker需要去掉
         Worker_Monitor.scheduleAtFixedRate(() -> {
-            logger.info("当前App数:" + Workers.size());
+            logger.info("当前group数:" + Workers.size());
             int workerNum = 0;
             Iterator<List<Worker>> iter = Workers.values().iterator();
             while (iter.hasNext()) {
@@ -68,22 +68,22 @@ public class WorkerFactory {
                 }
                 workerNum += workers.size();
             }
-            logger.info("当前worker数:" + workerNum);
+            logger.info("当前总worker数:" + workerNum);
         }, 60, 60, TimeUnit.SECONDS);
     }
 
     /**
-     * 按应用分配worker
+     * 按分组分配worker
      * 
-     * @param app
+     * @param group
      * @return
      */
-    public Worker arrage(String app) {
-        List<Worker> workers = Workers.get(app);
+    public Worker arrage(String group) {
+        List<Worker> workers = Workers.get(group);
         Worker worker = null;
         if (workers == null) {
             workers = new LinkedList<>();
-            Workers.put(app, workers);
+            Workers.put(group, workers);
         }
         Iterator<Worker> iter = workers.iterator();
         while (iter.hasNext()) {
@@ -94,7 +94,7 @@ public class WorkerFactory {
             }
         }
         if (worker == null) {
-            worker = new LemmingWorker(app);
+            worker = new LemmingWorker(group);
             workers.add(worker);
         }
         return worker;

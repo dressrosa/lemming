@@ -14,7 +14,7 @@ public interface Context {
 
     void start();
 
-    LemmingTask getLocalTask(String taskId, String group);
+    LemmingTask getLocalTask(String app, String taskId);
 
     void initTransporter(String transporter);
 

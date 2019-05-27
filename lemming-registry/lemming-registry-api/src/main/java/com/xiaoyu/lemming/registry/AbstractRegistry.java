@@ -19,16 +19,16 @@ public abstract class AbstractRegistry implements Registry {
     private static final Map<String, LemmingTask> Task_Map = new HashMap<>();
 
     @Override
-    public LemmingTask getLocalTask(String taskId) {
+    public LemmingTask getLocalTask(String app, String taskId) {
         final Map<String, LemmingTask> taskMap = Task_Map;
-        LemmingTask task = taskMap.get(taskId);
+        LemmingTask task = taskMap.get(app + "_" + taskId);
         return task;
     }
 
     @Override
     public void storeLocalTask(LemmingTask task) {
-        if (!Task_Map.containsKey(task.getTaskId())) {
-            Task_Map.put(task.getTaskId(), task);
+        if (!Task_Map.containsKey(task.getApp() + "_" + task.getTaskId())) {
+            Task_Map.put(task.getApp() + "_" + task.getTaskId(), task);
         }
     }
 
