@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
-<mapper namespace="com.xiaoyu.lemming.mapper.LemmingTaskMapper">
+<mapper namespace="com.xiaoyu.lemming.storage.mysql.mapper.LemmingTaskMapper">
     <sql id="Base_Column_List">
 
     </sql>
@@ -29,7 +29,7 @@
     </select>
 
     <select id="getTasks" resultType="com.xiaoyu.lemming.core.api.LemmingTask"
-        parameterType="java.lang.String">
+        parameterType="com.xiaoyu.lemming.storage.mysql.query.LemmingTaskQuery">
         select
         a.id as id,
         a.task_id as taskId,
@@ -42,9 +42,27 @@
         a.suspension as suspension
         from biz_task as a
         where
-        a.usable = 1
-        and a.del_flag=0
-        and a.`group` !=''
+        a.del_flag=0
+        <if test="app != null">
+            and a.app = #{app}
+        </if>
+        <if test="taskId != null">
+            and a.task_id = #{taskId}
+        </if>
+        <if test="apps != null and apps.size > 0">
+            and a.app in
+            <foreach collection="apps" item="item" index="index" open="(" separator=","
+                close=")">
+                #{item}
+            </foreach>
+        </if>
+        <if test="taskIds != null and taskIds.size > 0">
+            and a.task_id in
+            <foreach collection="taskIds" item="item" index="index" open="(" separator=","
+                close=")">
+                #{item}
+            </foreach>
+        </if>
     </select>
 
     <select id="getUpdatedTasks" resultType="com.xiaoyu.lemming.core.api.LemmingTask"
@@ -69,6 +87,8 @@
     <insert id="insert" parameterType="com.xiaoyu.lemming.core.api.LemmingTask">
         insert into biz_task(
         task_id,
+        task_impl,
+        name,
         `group`,
         app,
         rule,
@@ -80,6 +100,8 @@
         values
         (
         #{item.taskId},
+        #{item.taskImpl},
+        #{item.name},
         #{item.group},
         #{item.app},
         #{item.rule},
@@ -98,17 +120,22 @@
     <insert id="batchInsert" parameterType="java.util.List">
         insert into biz_task(
         task_id,
+        task_impl,
+        name,
         `group`,
         app,
         rule,
         transport,
         params,
-        usable
+        usable,
+        suspension
         )
         values
         <foreach collection="list" item="item" index="index" separator=",">
             (
             #{item.taskId},
+            #{item.taskImpl},
+            #{item.name},
             #{item.group},
             #{item.app},
             #{item.rule},
@@ -150,17 +177,21 @@
     <!--log -->
     <insert id="insertLog" parameterType="com.xiaoyu.lemming.common.entity.LemmingTaskLog">
         insert into biz_task_log(
+        trace_id,
         `group`,
         app,
         task_id,
+        host,
         state,
         message
         )
         values
         (
+        #{traceId},
         #{group},
         #{app},
         #{taskId},
+        #{host},
         #{state},
         #{message}
         )

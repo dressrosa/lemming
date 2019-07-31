@@ -1,22 +1,26 @@
 package com.xiaoyu.lemming.core.api;
 
-import java.io.Serializable;
-
 /**
  * @author hongyu
  * @param
  * @date 2019-03
  * @description
  */
-public class LemmingTask implements Task, Serializable {
+public class LemmingTask implements Task {
 
     private static final long serialVersionUID = 8607614712966713060L;
 
+    // 链路id
+    private String traceId;
     private Integer id;
     private int delFlag = 0;
 
     // 任务id
     private String taskId;
+    // 任务实现类
+    private String taskImpl;
+    // 任务类型 1 定时任务 2临时任务(只执行一次) TODO
+    private Integer taskType;
     // 名称
     private String name;
     // 任务所属组别
@@ -29,7 +33,6 @@ public class LemmingTask implements Task, Serializable {
     private String rule;
     // 协议 rpc or http
     private String transport;
-    private String taskImpl;
     // 是否可用
     private Integer usable;
 
@@ -48,6 +51,27 @@ public class LemmingTask implements Task, Serializable {
     private boolean sync;
     // 是否暂停
     private Integer suspension;
+
+    // 机器ip
+    private String host;
+
+    public String getTraceId() {
+        return traceId;
+    }
+
+    public LemmingTask setTraceId(String traceId) {
+        this.traceId = traceId;
+        return this;
+    }
+
+    public String getHost() {
+        return host;
+    }
+
+    public LemmingTask setHost(String host) {
+        this.host = host;
+        return this;
+    }
 
     public String getName() {
         return name;
@@ -254,13 +278,15 @@ public class LemmingTask implements Task, Serializable {
         final StringBuilder builder = new StringBuilder();
         builder.append("taskId=").append(this.getTaskId())
                 .append("&taskImpl=").append(this.getTaskImpl())
+                .append("&name=").append(this.getName())
                 .append("&app=").append(this.getApp())
                 .append("&group=").append(this.getGroup())
-                .append("&rule=").append(this.getRule())
+                .append("&rule=").append(this.getRule().replace('/', '.'))
                 .append("&protocol=").append(this.getProtocol())
                 .append("&transport=").append(this.getTransport())
                 .append("&usable=").append(this.getUsable() == null ? 0 : this.getUsable())
                 .append("&suspension=").append(this.getSuspension() == null ? 0 : this.getSuspension())
+                .append("&host=").append(this.getHost())
                 .append("&side=").append(this.getSide());
         return builder.toString();
     }
@@ -273,12 +299,14 @@ public class LemmingTask implements Task, Serializable {
                 t.setTaskId(str.substring(7));
             } else if (str.startsWith("taskImpl")) {
                 t.setTaskImpl(str.substring(9));
+            } else if (str.startsWith("name")) {
+                t.setName(str.substring(5));
             } else if (str.startsWith("app")) {
                 t.setApp(str.substring(4));
             } else if (str.startsWith("group")) {
                 t.setGroup(str.substring(6));
             } else if (str.startsWith("rule")) {
-                t.setRule(str.substring(5));
+                t.setRule(str.substring(5).replace('.', '/'));
             } else if (str.startsWith("protocol")) {
                 t.setProtocol(str.substring(9));
             } else if (str.startsWith("transport")) {
@@ -287,6 +315,8 @@ public class LemmingTask implements Task, Serializable {
                 t.setUsable(Integer.valueOf(str.substring(7)));
             } else if (str.startsWith("suspension")) {
                 t.setSuspension(Integer.valueOf(str.substring(11)));
+            } else if (str.startsWith("host")) {
+                t.setHost(str.substring(5));
             } else if (str.startsWith("side")) {
                 t.setSide(str.substring(5));
             }

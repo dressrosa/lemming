@@ -26,6 +26,7 @@
     <xsd:element name="task">
         <xsd:complexType>
             <xsd:attribute name="taskId" type="string" use="required" />
+            <xsd:attribute name="name" type="string" use="optional" default=""/>
             <xsd:attribute name="rule" type="string" use="optional" default="" />
             <xsd:attribute name="protocol" type="string" use="optional" default="" />
             <xsd:attribute name="taskImpl" type="string" use="required" />

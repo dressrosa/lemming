@@ -19,6 +19,7 @@ import org.springframework.beans.factory.xml.ParserContext;
 import org.w3c.dom.Element;
 
 import com.xiaoyu.lemming.common.extension.SpiManager;
+import com.xiaoyu.lemming.common.util.NetUtil;
 import com.xiaoyu.lemming.common.util.StringUtil;
 import com.xiaoyu.lemming.core.api.Context;
 import com.xiaoyu.lemming.core.api.LemmingTask;
@@ -143,6 +144,10 @@ public class LemmingBeanDefinitionParser extends AbstractSimpleBeanDefinitionPar
         element.setAttribute("id", "task_config_" + taskId);
         String taskImpl = element.getAttribute("taskImpl");
         String rule = element.getAttribute("rule");
+        String name = element.getAttribute("name");
+        if (StringUtil.isBlank(name)) {
+            name = "";
+        }
         if (StringUtil.isBlank(taskId)) {
             throw new Exception(" TaskId cannot be null in xml tag->" + element.getTagName());
         }
@@ -159,10 +164,12 @@ public class LemmingBeanDefinitionParser extends AbstractSimpleBeanDefinitionPar
             // 注册服务
             LemmingTask task = new LemmingTask();
             task.setTaskId(taskId)
+                    .setName(name)
                     .setGroup("")
                     .setTaskImpl(taskImpl)
                     .setRule(rule == null ? "" : rule)
                     .setParams(null)
+                    .setHost(NetUtil.localIP())// TODO
                     .setSide("client");
             taskSet.add(task);
             // 注册bean

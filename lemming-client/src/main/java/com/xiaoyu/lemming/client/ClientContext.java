@@ -6,6 +6,7 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import com.xiaoyu.lemming.common.constant.CommonConstant;
 import com.xiaoyu.lemming.common.extension.SpiManager;
 import com.xiaoyu.lemming.core.api.Context;
 import com.xiaoyu.lemming.core.api.LemmingTask;
@@ -40,13 +41,14 @@ public class ClientContext implements Context {
     public ClientContext() {
     }
 
+    @Override
     public ThreadPoolExecutor getProcessor() {
         return Processor;
     }
 
     @Override
     public String side() {
-        return "client";
+        return CommonConstant.Client;
     }
 
     @Override
@@ -55,13 +57,13 @@ public class ClientContext implements Context {
     }
 
     @Override
-    public LemmingTask getLocalTask(String app, String taskId) {
+    public LemmingTask getLocalTask(String group, String taskId) {
         try {
             registry = SpiManager.defaultSpiExtender(Registry.class);
         } catch (Exception e) {
             e.printStackTrace();
         }
-        final LemmingTask task = registry.getLocalTask(app, taskId);
+        final LemmingTask task = registry.getLocalTask(group, taskId);
         return task;
     }
 

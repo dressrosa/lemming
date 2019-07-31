@@ -20,15 +20,15 @@ public class DubboTransporter implements Transporter {
     }
 
     @Override
-    public void callback(LemmingTask task) {
-        // TODO Auto-generated method stub
-
-    }
-
-    @Override
     public ExecuteResult call(LemmingTask task) throws Exception {
         // TODO Auto-generated method stub
         return null;
+    }
+
+    @Override
+    public void callback(ExecuteResult result) throws Exception {
+        // TODO Auto-generated method stub
+
     }
 
 }

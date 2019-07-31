@@ -16,6 +16,7 @@ import java.util.concurrent.TimeUnit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.xiaoyu.beacon.common.utils.StringUtil;
 import com.xiaoyu.lemming.core.api.Worker;
 
 /**
@@ -43,42 +44,49 @@ public class WorkerFactory {
 
     public void startMonitor() {
         // 每分钟检测是否有空闲的worker需要去掉
+        // 这里对锁持有乐观态度,正常认为一分钟迭代遍历已经结束了
         Worker_Monitor.scheduleAtFixedRate(() -> {
-            logger.info("当前group数:" + Workers.size());
-            int workerNum = 0;
-            Iterator<List<Worker>> iter = Workers.values().iterator();
-            while (iter.hasNext()) {
-                List<Worker> workers = iter.next();
-                Iterator<Worker> witer = workers.iterator();
-                while (witer.hasNext()) {
-                    Worker w = witer.next();
-                    if (!w.isBusy() && !w.isWorking()) {
-                        w.suspend(true);
-                        if (!w.isWorking()) {
-                            w.laidOff();
-                            witer.remove();
-                            logger.info(" worker[" + w.name() + "] is removed");
-                        } else {
-                            w.suspend(false);
+            try {
+                logger.info(" At present the group count:" + Workers.size());
+                int workerNum = 0;
+                Iterator<List<Worker>> iter = Workers.values().iterator();
+                while (iter.hasNext()) {
+                    List<Worker> workers = iter.next();
+                    Iterator<Worker> witer = workers.iterator();
+                    while (witer.hasNext()) {
+                        Worker w = witer.next();
+                        if (!w.isBusy() && !w.isWorking()) {
+                            w.suspend(true);
+                            if (!w.isWorking()) {
+                                w.laidOff();
+                                witer.remove();
+                                logger.info(" Worker[" + w.name() + "] is removed");
+                            } else {
+                                w.suspend(false);
+                            }
                         }
                     }
+                    if (workers.isEmpty()) {
+                        iter.remove();
+                    }
+                    workerNum += workers.size();
                 }
-                if (workers.isEmpty()) {
-                    iter.remove();
-                }
-                workerNum += workers.size();
+                logger.info(" At present the worker count:" + workerNum);
+            } catch (Exception e) {
             }
-            logger.info("当前总worker数:" + workerNum);
         }, 60, 60, TimeUnit.SECONDS);
     }
 
     /**
-     * 按分组分配worker
+     * 按组分配worker
      * 
      * @param group
      * @return
      */
     public Worker arrage(String group) {
+        if (StringUtil.isBlank(group)) {
+            return null;
+        }
         List<Worker> workers = Workers.get(group);
         Worker worker = null;
         if (workers == null) {

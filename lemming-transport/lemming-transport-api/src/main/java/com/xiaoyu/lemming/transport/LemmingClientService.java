@@ -13,7 +13,7 @@ import com.xiaoyu.lemming.core.api.LemmingTask;
  * @date 2019-04
  * @description
  */
-public interface LemmingService {
+public interface LemmingClientService {
 
-    public ExecuteResult handleTask(LemmingTask task) throws Exception;
+    ExecuteResult handleTask(LemmingTask task) throws Exception;
 }

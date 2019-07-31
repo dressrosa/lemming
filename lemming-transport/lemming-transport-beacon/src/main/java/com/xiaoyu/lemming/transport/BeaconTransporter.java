@@ -12,6 +12,8 @@ import com.xiaoyu.beacon.rpc.service.GenericService;
 import com.xiaoyu.beacon.spring.config.BeaconExporter;
 import com.xiaoyu.lemming.common.constant.CommonConstant;
 import com.xiaoyu.lemming.common.entity.ExecuteResult;
+import com.xiaoyu.lemming.common.extension.SpiManager;
+import com.xiaoyu.lemming.core.api.Context;
 import com.xiaoyu.lemming.core.api.LemmingTask;
 
 /**
@@ -23,46 +25,71 @@ public class BeaconTransporter implements Transporter {
 
     private static final Logger logger = LoggerFactory.getLogger(BeaconTransporter.class);
 
+    private static final int Timeout = 60_000;
+
     @Override
-    public void callback(LemmingTask task) {
-        task.setRunning(false);
+    public void callback(ExecuteResult result) throws Exception {
+        GenericReference ref = new GenericReference();
+        ref.setInterfaceName(CommonConstant.Lemming_Server_Service);
+        ref.setGroup(CommonConstant.Lemming_Group);
+        ref.setTimeout(Timeout + "");
+        try {
+            GenericService generic = GenericRequestLauncher.launch(ref);
+            generic.$_$invoke(CommonConstant.Task_Callback_Method, Void.class,
+                    new Object[] { result },
+                    new Class<?>[] { ExecuteResult.class });
+        } catch (Exception e) {
+            logger.error(" Task[" + result.getTaskId() + "] Callback task client failed:" + e);
+            throw e;
+        }
+        return;
     }
 
     @Override
     public ExecuteResult call(LemmingTask task) throws Exception {
         GenericReference ref = new GenericReference();
-        ref.setInterfaceName(CommonConstant.Lemming_Service);
+        ref.setInterfaceName(CommonConstant.Lemming_Client_Service);
         ref.setGroup(CommonConstant.Lemming_Group);
-        ref.setTimeout(Integer.MAX_VALUE + "");
+        ref.setTimeout(Timeout + "");
         try {
             GenericService generic = GenericRequestLauncher.launch(ref);
-            Object result = generic.$_$invoke(CommonConstant.Task_Method, Boolean.class, new Object[] { task });
-            if (result instanceof ExecuteResult) {
-                ExecuteResult ret = (ExecuteResult) result;
-                if (ret.isSuccess()) {
-                    logger.info(" Task:" + task.getTaskId() + " do success:" + ret.getMessage());
-                } else {
-                    logger.info(" Task:" + task.getTaskId() + " do failed:" + ret.getMessage());
-                }
-                return ret;
+            ExecuteResult ret = generic.$_$invoke(CommonConstant.Task_Call_Method, ExecuteResult.class,
+                    new Object[] { task },
+                    new Class<?>[] { LemmingTask.class });
+            if (ret.isSuccess()) {
+                logger.info(" Task:" + task.getTaskId() + " do success:" + ret.getMessage());
+            } else {
+                logger.info(" Task:" + task.getTaskId() + " do failed:" + ret.getMessage());
             }
+            return ret;
+
         } catch (Exception e) {
             logger.error(" Task[" + task.getTaskId() + "] Call task client failed:" + e);
             throw e;
         }
-        return new ExecuteResult();
     }
 
     @Override
     public void export() {
-        BeaconExporter exporter = new BeaconExporter();
         try {
-            exporter.setGroup(CommonConstant.Lemming_Group)
-                    .setInterfaceName(CommonConstant.Lemming_Service)
-                    .setRef(CommonConstant.Lemming_Service_Impl)
-                    .export();
+            BeaconExporter exporter = new BeaconExporter();
+            Context context = SpiManager.defaultSpiExtender(Context.class);
+            if (CommonConstant.Client.equals(context.side())) {
+                exporter.setGroup(CommonConstant.Lemming_Group)
+                        .setInterfaceName(CommonConstant.Lemming_Client_Service)
+                        .setRef(CommonConstant.Lemming_Service_Client_Impl)
+                        .setMethods(CommonConstant.Task_Call_Method)
+                        .export();
+            } else {
+                exporter.setGroup(CommonConstant.Lemming_Group)
+                        .setInterfaceName(CommonConstant.Lemming_Server_Service)
+                        .setRef(CommonConstant.Lemming_Service_Server_Impl)
+                        .setMethods(CommonConstant.Task_Callback_Method)
+                        .export();
+            }
+
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error("" + e);
         }
     }
 

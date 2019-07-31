@@ -3,6 +3,8 @@
  */
 package com.xiaoyu.lemming.core.api;
 
+import java.util.concurrent.ThreadPoolExecutor;
+
 /**
  * @author hongyu
  * @date 2019-04
@@ -14,9 +16,11 @@ public interface Context {
 
     void start();
 
-    LemmingTask getLocalTask(String app, String taskId);
+    LemmingTask getLocalTask(String group, String taskId);
 
     void initTransporter(String transporter);
 
     void close();
+
+    ThreadPoolExecutor getProcessor();
 }

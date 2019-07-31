@@ -16,6 +16,17 @@ public class Task {
 
     private String taskImpl;
 
+    private String name;
+
+    public String getName() {
+        return name;
+    }
+
+    public Task setName(String name) {
+        this.name = name;
+        return this;
+    }
+
     public String getTaskId() {
         return taskId;
     }

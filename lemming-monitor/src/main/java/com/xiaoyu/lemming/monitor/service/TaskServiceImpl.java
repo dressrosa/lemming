@@ -37,6 +37,9 @@ public class TaskServiceImpl implements TaskService {
         if (task.getSuspension() != null) {
             t.setSuspension(task.getSuspension());
         }
+        if (StringUtil.isNotBlank(task.getName())) {
+            t.setName(task.getName());
+        }
         this.taskDao.update(t);
         return 1;
     }

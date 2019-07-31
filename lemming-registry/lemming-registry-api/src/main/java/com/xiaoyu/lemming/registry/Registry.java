@@ -49,9 +49,9 @@ public interface Registry {
     void storeLocalTask(LemmingTask task);
 
     /**
-     * @param app
+     * @param group
      * @param taskId
      * @return
      */
-    LemmingTask getLocalTask(String app, String taskId);
+    LemmingTask getLocalTask(String group, String taskId);
 }

@@ -1,4 +1,4 @@
-package com.xiaoyu.lemming.mapper;
+package com.xiaoyu.lemming.storage.mysql.mapper;
 
 import java.util.List;
 
@@ -6,12 +6,13 @@ import org.apache.ibatis.annotations.Param;
 
 import com.xiaoyu.lemming.common.entity.LemmingTaskLog;
 import com.xiaoyu.lemming.core.api.LemmingTask;
+import com.xiaoyu.lemming.storage.mysql.query.LemmingTaskQuery;
 
 public interface LemmingTaskMapper {
 
     LemmingTask getOneTask(@Param("group") String group, @Param("taskId") String taskId);
 
-    List<LemmingTask> getTasks(@Param("group") String group);
+    List<LemmingTask> getTasks(LemmingTaskQuery query);
 
     int insert(LemmingTask task);
 

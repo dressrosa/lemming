@@ -95,7 +95,6 @@ public class ZooRegistry extends AbstractRegistry {
                 }
                 doServerResolveInfo(parentPath, currentChilds);
             }
-
         };
         zoo.subscribeChildChanges(ROOT, rootListener);
         // 保存listener
@@ -103,6 +102,11 @@ public class ZooRegistry extends AbstractRegistry {
 
         List<String> rootChildren = zoo.children(ROOT);
         if (!rootChildren.isEmpty()) {
+            // 初始化已经存在的所有的任务
+            for (String t : rootChildren) {
+                doServerResolveInfo(t, zoo.children(clientPath(t)));
+            }
+            // 添加监听器
             for (String t : rootChildren) {
                 IZkChildListener listener = new IZkChildListener() {
                     @Override
@@ -123,9 +127,9 @@ public class ZooRegistry extends AbstractRegistry {
     }
 
     private void doServerResolveInfo(String parentPath, List<String> currentChilds) {
+        List<LemmingTask> tasks = new ArrayList<>();
         if (ROOT.equals(parentPath)) {
             // 新task上线, 已经存在的是永久节点 不会消失
-            List<LemmingTask> tasks = new ArrayList<>();
             for (String t : currentChilds) {
                 List<String> tcs = zoo.children(ROOT + "/" + t + CLIENTS);
                 if (!tcs.isEmpty()) {
@@ -133,26 +137,19 @@ public class ZooRegistry extends AbstractRegistry {
                         tasks.add(LemmingTask.toEntity(p));
                 }
             }
-            if (!tasks.isEmpty()) {
-                try {
-                    Storage storage = SpiManager.defaultSpiExtender(Storage.class);
-                    storage.batchSave(tasks);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
         } else {
             // 已存在的task发生改变,掉线或下线,或新增节点,或重新上线
             if (currentChilds.isEmpty()) {
                 return;
             }
-            List<LemmingTask> tasks = new ArrayList<>();
             for (String p : currentChilds) {
                 tasks.add(LemmingTask.toEntity(p));
             }
+        }
+        if (!tasks.isEmpty()) {
             try {
-                // Storage storage = SpiManager.defaultSpiExtender(Storage.class);
-                // storage.batchSave(tasks);
+                Storage storage = SpiManager.defaultSpiExtender(Storage.class);
+                storage.batchSave(tasks);
             } catch (Exception e) {
                 e.printStackTrace();
             }

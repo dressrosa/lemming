@@ -13,8 +13,28 @@ public class LemmingTaskLog {
     private String group;
     private String app;
     private String taskId;
+    private String host;
     private Integer state;
     private String message;
+    private String traceId;
+
+    public String getTraceId() {
+        return traceId;
+    }
+
+    public LemmingTaskLog setTraceId(String traceId) {
+        this.traceId = traceId;
+        return this;
+    }
+
+    public String getHost() {
+        return host;
+    }
+
+    public LemmingTaskLog setHost(String host) {
+        this.host = host;
+        return this;
+    }
 
     public String getGroup() {
         return group;
