@@ -6,10 +6,8 @@ package com.xiaoyu.lemming.schedule;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.Iterator;
-import java.util.Map.Entry;
-import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
+import java.util.List;
+import java.util.WeakHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ThreadFactory;
@@ -24,8 +22,11 @@ import com.cronutils.model.CronType;
 import com.cronutils.model.definition.CronDefinitionBuilder;
 import com.cronutils.model.time.ExecutionTime;
 import com.cronutils.parser.CronParser;
+import com.xiaoyu.lemming.common.constant.CallTypeEnum;
 import com.xiaoyu.lemming.common.entity.ExecuteResult;
+import com.xiaoyu.lemming.common.entity.LemmingTaskClient;
 import com.xiaoyu.lemming.common.extension.SpiManager;
+import com.xiaoyu.lemming.common.util.CycleList;
 import com.xiaoyu.lemming.common.util.StringUtil;
 import com.xiaoyu.lemming.core.api.Context;
 import com.xiaoyu.lemming.core.api.LemmingTask;
@@ -47,6 +48,12 @@ public class LemmingWorker implements Worker {
      */
     private static final CronParser Rule_Parser = new CronParser(
             CronDefinitionBuilder.instanceDefinitionFor(CronType.SPRING));
+
+    /**
+     * 存放解析过的cron
+     */
+    private static final WeakHashMap<String, Cron> Cron_Map = new WeakHashMap<>();
+
     /**
      * 用于检测任务是否需要运行
      */
@@ -60,7 +67,7 @@ public class LemmingWorker implements Worker {
     /**
      * 用于存放任务
      */
-    private final ConcurrentMap<String, LemmingTask> Workbook = new ConcurrentHashMap<>();
+    private final CycleList<LemmingTask> Work_Book = new CycleList<>();
 
     /**
      * 是否繁忙
@@ -105,13 +112,11 @@ public class LemmingWorker implements Worker {
                 if (isDebugEnabled) {
                     logger.debug(" Task_Monitor begin checking task need run.");
                 }
-                Iterator<Entry<String, LemmingTask>> iter = Workbook.entrySet().iterator();
+                Iterator<LemmingTask> iter = Work_Book.iterator();
                 ZonedDateTime now = ZonedDateTime.now();
-                Entry<String, LemmingTask> en = null;
                 LemmingTask t = null;
                 while (iter.hasNext()) {
-                    en = iter.next();
-                    if ((t = en.getValue()).getUsable() == 0) {
+                    if ((t = iter.next()).getDelFlag() == 1) {
                         // 不可并发
                         iter.remove();
                     }
@@ -139,13 +144,21 @@ public class LemmingWorker implements Worker {
      * @return
      */
     private boolean checkShouldRunNow(LemmingTask task, ZonedDateTime now) {
-        if (task.isRunning() || task.getSuspension() == 1) {
+        if (task.getClients().isEmpty()) {
             return false;
         }
         if (StringUtil.isBlank(task.getRule())) {
             return false;
         }
-        Cron cron = Rule_Parser.parse(task.getRule());
+        if (task.getUsable() == 0 || task.isRunning() || task.getSuspension() == 1) {
+            return false;
+        }
+        final WeakHashMap<String, Cron> cmap = Cron_Map;
+        Cron cron = cmap.get(task.getRule());
+        if (cron == null) {
+            cron = Rule_Parser.parse(task.getRule());
+            cmap.put(task.getRule(), cron);
+        }
         ExecutionTime executionTime = ExecutionTime.forCron(cron);
         boolean shouldRun = executionTime.isMatch(now);
         if (shouldRun) {
@@ -158,42 +171,79 @@ public class LemmingWorker implements Worker {
     }
 
     @Override
-    public void handle(LemmingTask task) {
+    public void handle(LemmingTask task) throws Exception {
         task.setRunning(true);
-        try {
-            String traceId = UUID.randomUUID().toString();
-            Context context = SpiManager.defaultSpiExtender(Context.class);
-            context.getProcessor().submit(() -> {
-                try {
-                    Transporter transporter = SpiManager.defaultSpiExtender(Transporter.class);
-                    task.setTraceId(traceId);
-                    ExecuteResult callRet = transporter.call(task);
-                    // 记录调用
-                    Storage storage = SpiManager.defaultSpiExtender(Storage.class);
-                    storage.saveLog(task, callRet);
-                } catch (Exception e) {
-                    logger.error(" Call task[" + task.getTaskId() + "] failed:" + e);
-                    try {
-                        // 记录调用失败次数
-                        Storage storage = SpiManager.defaultSpiExtender(Storage.class);
-                        storage.saveLog(task, new ExecuteResult().setTraceId(traceId)
-                                .setMessage(e.getMessage()));
-                    } catch (Exception e2) {
-                        logger.error("" + e2);
-                    }
+        Context context = SpiManager.defaultSpiExtender(Context.class);
+        context.submit(() -> {
+            try {
+                if (task.getCallType() == CallTypeEnum.Simple.ordinal()) {
+                    this.doHandleSimple(task);
+                } else if (task.getCallType() == CallTypeEnum.Broadcast.ordinal()) {
+                    this.doHandleBroadcast(task);
                 }
+            } catch (Exception e) {
+                logger.error("" + e);
+            } finally {
                 task.setRunning(false);
-            });
-            // TODO 应该有个方法判断是否繁忙
-            if (context.getProcessor().getQueue().size() / Runtime.getRuntime().availableProcessors() > 4) {
-                this.busy = true;
-            } else {
-                this.busy = false;
             }
-        } catch (Exception e1) {
-            logger.error("" + e1);
-        }
+            return 1;
+        });
+        // TODO 应该有个方法判断是否繁忙
+        // if (context.getProcessor().getQueue().size() /
+        // Runtime.getRuntime().availableProcessors() > 4) {
+        // this.busy = true;
+        // } else {
+        // this.busy = false;
+        // }
+    }
 
+    private void doHandleSimple(LemmingTask task) throws Exception {
+        Transporter transporter = SpiManager.defaultSpiExtender(Transporter.class);
+        String traceId = StringUtil.getUUID();
+        task.setTraceId(traceId);
+        try {
+            ExecuteResult callRet = transporter.call(task, null);
+            // 记录调用
+            Storage storage = SpiManager.defaultSpiExtender(Storage.class);
+            storage.saveLog(task, callRet);
+        } catch (Exception e) {
+            logger.error(" Call task[" + task.getTaskId() + "] failed:" + e);
+            try {
+                // 记录调用失败次数
+                Storage storage = SpiManager.defaultSpiExtender(Storage.class);
+                storage.saveLog(task, new ExecuteResult().setTraceId(traceId)
+                        .setMessage(e.getMessage()));
+            } catch (Exception e2) {
+                logger.error("" + e2);
+            }
+        }
+    }
+
+    private void doHandleBroadcast(LemmingTask task) throws Exception {
+        Transporter transporter = SpiManager.defaultSpiExtender(Transporter.class);
+        List<LemmingTaskClient> clients = task.getClients();
+        // broadcast
+        String traceId = "";
+        for (LemmingTaskClient c : clients) {
+            try {
+                traceId = StringUtil.getUUID();
+                task.setTraceId(traceId);
+                ExecuteResult callRet = transporter.call(task, c);
+                // 记录调用
+                Storage storage = SpiManager.defaultSpiExtender(Storage.class);
+                storage.saveLog(task, callRet);
+            } catch (Exception e) {
+                logger.error(" Call task[" + task.getTaskId() + "] failed:" + e);
+                try {
+                    // 记录调用失败次数
+                    Storage storage = SpiManager.defaultSpiExtender(Storage.class);
+                    storage.saveLog(task, new ExecuteResult().setTraceId(traceId)
+                            .setMessage(e.getMessage()));
+                } catch (Exception e2) {
+                    logger.error("" + e2);
+                }
+            }
+        }
     }
 
     @Override
@@ -204,30 +254,67 @@ public class LemmingWorker implements Worker {
         if (busy || suspension) {
             return false;
         }
-        LemmingTask t = Workbook.get(task.getTaskId());
-        if (t == null) {
-            if (task.getDelFlag() == 0) {
-                Workbook.put(task.getTaskId(), task);
-            }
-        } else {
-            if (task.getUsable() == 0 || task.getDelFlag() == 1) {
-                Workbook.remove(task.getTaskId());
-                return true;
-            }
-            boolean changed = false;
-            if (!t.getRule().equals(task.getRule())) {
-                t.setRule(task.getRule());
-                changed = true;
-            }
-            if (t.getSuspension() != task.getSuspension()) {
-                t.setSuspension(task.getSuspension());
-                changed = true;
-            }
-            if (!changed) {
-                return false;
+        Iterator<LemmingTask> iter = Work_Book.iterator();
+        boolean isNew = true;
+        while (iter.hasNext()) {
+            LemmingTask t = iter.next();
+            if (t.getTaskId().equals(task.getTaskId())) {
+                isNew = false;
+                if (task.getUsable() == 0 || task.getDelFlag() == 1) {
+                    t.setUsable(task.getUsable());
+                    t.setDelFlag(task.getDelFlag());
+                    return true;
+                }
+                boolean changed = false;
+                if (!t.getRule().equals(task.getRule())) {
+                    t.setRule(task.getRule());
+                    changed = true;
+                }
+                if (t.getSuspension() != task.getSuspension()) {
+                    t.setSuspension(task.getSuspension());
+                    changed = true;
+                }
+                if (t.getCallType() != task.getCallType()) {
+                    t.setCallType(task.getCallType());
+                    changed = true;
+                }
+                if (!changed) {
+                    return false;
+                }
             }
         }
-        return true;
+        if (isNew) {
+            if (task.getDelFlag() == 0) {
+                return Work_Book.add(task);
+            }
+        }
+        return false;
+    }
+
+    @Override
+    public boolean accept(List<LemmingTask> tasks) {
+        int size = tasks.size();
+        if (size == 0) {
+            return false;
+        }
+        if (busy || suspension) {
+            return false;
+        }
+        CycleList<LemmingTask> wbs = Work_Book;
+        for (LemmingTask t : tasks) {
+            if (t.getUsable() == 0 || t.getDelFlag() == 1) {
+                wbs.remove(t);
+                continue;
+            }
+            if (wbs.contains(t)) {
+                // 根据equals删除
+                wbs.remove(t);
+                wbs.add(t);
+            } else {
+                wbs.add(t);
+            }
+        }
+        return false;
     }
 
     @Override
@@ -237,22 +324,22 @@ public class LemmingWorker implements Worker {
 
     @Override
     public boolean isWorking() {
-        if (Workbook.isEmpty()) {
+        if (Work_Book.isEmpty()) {
             return false;
         }
-        Iterator<LemmingTask> iter = Workbook.values().iterator();
+        Iterator<LemmingTask> iter = Work_Book.iterator();
         while (iter.hasNext()) {
             LemmingTask task = iter.next();
-            if (task.getUsable() == 0) {
-                iter.remove();
+            if (task.getDelFlag() == 1) {
+                continue;
             }
-            if (task.isRunning() || task.getUsable() == 1 || task.getDelFlag() == 0) {
+            if (task.isRunning() || task.getUsable() == 1) {
                 return true;
             }
         }
         try {
             Context context = SpiManager.defaultSpiExtender(Context.class);
-            return context.getProcessor().getTaskCount() > 0 ? true : false;
+            return context.getActiveTaskCount() > 0 ? true : false;
         } catch (Exception e1) {
             logger.error("" + e1);
         }
@@ -281,5 +368,10 @@ public class LemmingWorker implements Worker {
     @Override
     public String name() {
         return this.name;
+    }
+
+    @Override
+    public LemmingTask getTask(LemmingTask query) {
+        return Work_Book.get(query);
     }
 }

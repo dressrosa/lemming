@@ -14,7 +14,9 @@ public interface Exchanger {
 
     void allocate(List<LemmingTask> tasks);
 
-  //  void receive(LemmingTask task);
+    // void receive(LemmingTask task);
+
+    void execute(LemmingTask task);
 
     void start();
 

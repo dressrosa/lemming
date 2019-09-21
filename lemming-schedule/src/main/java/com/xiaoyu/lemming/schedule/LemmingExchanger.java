@@ -3,14 +3,8 @@
  */
 package com.xiaoyu.lemming.schedule;
 
-import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Queue;
 import java.util.concurrent.Executors;
-import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
@@ -33,27 +27,29 @@ public class LemmingExchanger implements Exchanger {
 
     private static final Logger logger = LoggerFactory.getLogger(LemmingExchanger.class);
 
-    private static final WorkerFactory workerFactory = new WorkerFactory();
-
-    // group->taskList 存放server端要执行的任务 同一个任务可能存在多份
-    private static final Map<String, Queue<LemmingTask>> Appending_Task_Map = new HashMap<>();
+    private static final WorkerFactory Worker_Factory = WorkerFactory.getFactory();
 
     /**
      * 监测新的任务
      */
-    private static ScheduledExecutorService Storage_Monitor = Executors.newSingleThreadScheduledExecutor();
+    private static final ScheduledExecutorService Storage_Monitor = Executors.newSingleThreadScheduledExecutor();
 
     private void startInspect() {
-        // 每30s检测是否新的task到来
+        // 每60s检测是否新的task
         Storage_Monitor.scheduleAtFixedRate(() -> {
             try {
+                if (logger.isDebugEnabled()) {
+                    logger.debug(" Start fetch task.");
+                }
                 Storage storage = SpiManager.defaultSpiExtender(Storage.class);
                 List<LemmingTask> tasks = storage.fetchUpdatedTasks();
                 allocate(tasks);
+                // 例检workers
+                Worker_Factory.regularChecking();
             } catch (Exception e) {
-                logger.error("" + e);
+                logger.error("", e);
             }
-        }, 10, 30, TimeUnit.SECONDS);
+        }, 10, 60, TimeUnit.SECONDS);
     }
 
     /**
@@ -62,48 +58,35 @@ public class LemmingExchanger implements Exchanger {
     private void initAllTasks() {
         try {
             Storage storage = SpiManager.defaultSpiExtender(Storage.class);
-            // TODO 应该分页取
+            // 内部实现需分页取
             List<LemmingTask> tasks = storage.fetchAllTasks();
             allocate(tasks);
         } catch (Exception e) {
-            logger.error("" + e);
+            logger.error("", e);
         }
     }
 
+    // 存放server端要执行的任务 同一个任务可能存在多份
     @Override
     public void allocate(List<LemmingTask> tasks) {
         if (tasks.isEmpty()) {
             return;
         }
+        int taskNum = 0;
         for (LemmingTask task : tasks) {
-            if (StringUtil.isBlank(task.getGroup())) {
+            if (StringUtil.isBlank(task.getTaskGroup())) {
                 continue;
             }
-            Queue<LemmingTask> tqueue = Appending_Task_Map.get(task.getGroup());
-            if (tqueue == null) {
-                Appending_Task_Map.put(task.getGroup(), new LinkedBlockingQueue<>());
-            }
-            Appending_Task_Map.get(task.getGroup()).add(task);
-        }
-        int taskNum = 0;
-        Iterator<Entry<String, Queue<LemmingTask>>> iter = Appending_Task_Map.entrySet().iterator();
-        while (iter.hasNext()) {
-            Entry<String, Queue<LemmingTask>> en = iter.next();
-            Worker worker = workerFactory.arrage(en.getKey());
+            Worker worker = Worker_Factory.arrage(task.getTaskGroup());
             if (worker == null) {
                 continue;
             }
-            Iterator<LemmingTask> viter = en.getValue().iterator();
-            while (viter.hasNext()) {
-                LemmingTask t = viter.next();
-                if (worker.accept(t)) {
-                    taskNum++;
-                }
-                viter.remove();
+            if (worker.accept(task)) {
+                taskNum++;
             }
         }
         if (taskNum > 0) {
-            logger.info("目前更新任务数:" + taskNum);
+            logger.info(" The updated tasks num->" + taskNum);
         }
     }
 
@@ -111,12 +94,31 @@ public class LemmingExchanger implements Exchanger {
     public void start() {
         this.initAllTasks();
         this.startInspect();
-        workerFactory.startMonitor();
     }
 
     @Override
     public void close() {
         Storage_Monitor.shutdown();
-        workerFactory.shutdown();
+        Worker_Factory.shutdown();
     }
+
+    @Override
+    public void execute(LemmingTask task) {
+        if (task == null) {
+            return;
+        }
+        if (StringUtil.isBlank(task.getTaskGroup())) {
+            return;
+        }
+        Worker worker = Worker_Factory.arrage(task.getTaskGroup());
+        if (worker == null) {
+            return;
+        }
+        try {
+            worker.handle(task);
+        } catch (Exception e) {
+            logger.error("", e);
+        }
+    }
+
 }

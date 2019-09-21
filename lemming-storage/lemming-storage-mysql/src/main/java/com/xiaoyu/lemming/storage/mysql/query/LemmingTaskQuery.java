@@ -16,6 +16,34 @@ public class LemmingTaskQuery {
     private List<String> taskIds;
     private List<String> apps;
 
+    private String taskImpl;
+    private Long startNum;
+    private Long pageSize;
+
+    public Long getStartNum() {
+        return startNum;
+    }
+
+    public void setStartNum(Long startNum) {
+        this.startNum = startNum;
+    }
+
+    public Long getPageSize() {
+        return pageSize;
+    }
+
+    public void setPageSize(Long pageSize) {
+        this.pageSize = pageSize;
+    }
+
+    public String getTaskImpl() {
+        return taskImpl;
+    }
+
+    public void setTaskImpl(String taskImpl) {
+        this.taskImpl = taskImpl;
+    }
+
     public String getTaskId() {
         return taskId;
     }

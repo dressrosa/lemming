@@ -12,6 +12,8 @@ import com.xiaoyu.lemming.core.api.LemmingTask;
  */
 public interface Storage {
 
+    void init(String url, String user, String password);
+
     void insert(LemmingTask task);
 
     int batchSave(List<LemmingTask> tasks);
@@ -27,4 +29,6 @@ public interface Storage {
     List<LemmingTask> fetchUpdatedTasks();
 
     int saveLog(LemmingTask task, ExecuteResult callRet);
+
+    int removeTaskClientsByImpl(String string);
 }

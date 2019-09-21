@@ -10,7 +10,6 @@ package com.xiaoyu.lemming.common.entity;
  */
 public class LemmingTaskLog {
 
-    private String group;
     private String app;
     private String taskId;
     private String host;
@@ -33,15 +32,6 @@ public class LemmingTaskLog {
 
     public LemmingTaskLog setHost(String host) {
         this.host = host;
-        return this;
-    }
-
-    public String getGroup() {
-        return group;
-    }
-
-    public LemmingTaskLog setGroup(String group) {
-        this.group = group;
         return this;
     }
 

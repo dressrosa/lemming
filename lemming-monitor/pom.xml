@@ -20,10 +20,22 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
+
         <dependency>
             <groupId>com.xiaoyu</groupId>
-            <artifactId>lemming-core-api</artifactId>
+            <artifactId>beacon</artifactId>
+            <version>0.0.2</version>
+        </dependency>
+        <dependency>
+            <groupId>com.xiaoyu</groupId>
+            <artifactId>lemming-schedule</artifactId>
             <version>0.0.1-SNAPSHOT</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>slf4j-simple</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
 
         <dependency>
@@ -31,7 +43,6 @@
             <artifactId>maple</artifactId>
             <version>0.0.1-SNAPSHOT</version>
         </dependency>
-
 
         <dependency>
             <groupId>org.aspectj</groupId>
@@ -46,6 +57,7 @@
         <dependency>
             <groupId>mysql</groupId>
             <artifactId>mysql-connector-java</artifactId>
+            <version>8.0.13</version>
         </dependency>
         <!--数据库连接池 -->
         <dependency>
@@ -74,6 +86,13 @@
             <artifactId>pagehelper</artifactId>
             <version>4.0.2</version>
         </dependency>
+
+        <!--模版引擎 -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-thymeleaf</artifactId>
+        </dependency>
+
     </dependencies>
     <build>
         <plugins>

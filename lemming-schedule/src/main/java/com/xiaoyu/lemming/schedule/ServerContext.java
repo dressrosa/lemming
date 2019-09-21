@@ -1,5 +1,7 @@
 package com.xiaoyu.lemming.schedule;
 
+import java.util.concurrent.Callable;
+import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -97,7 +99,12 @@ public class ServerContext implements Context {
     }
 
     @Override
-    public ThreadPoolExecutor getProcessor() {
-        return Processor;
+    public <T> Future<T> submit(Callable<T> runnable) {
+        return Processor.submit(runnable);
+    }
+
+    @Override
+    public int getActiveTaskCount() {
+        return Processor.getActiveCount();
     }
 }

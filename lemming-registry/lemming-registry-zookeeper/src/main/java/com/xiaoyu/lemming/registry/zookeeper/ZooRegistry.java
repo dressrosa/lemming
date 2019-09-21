@@ -8,7 +8,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.ScheduledExecutorService;
 
 import org.I0Itec.zkclient.IZkChildListener;
 import org.I0Itec.zkclient.IZkStateListener;
@@ -43,11 +42,6 @@ public class ZooRegistry extends AbstractRegistry {
      */
     private static final ConcurrentMap<String, IZkChildListener> CHILD_LISTENER_MAP = new ConcurrentHashMap<>(32);
 
-    /**
-     * 用来监听provider异常丢失
-     */
-    private static ScheduledExecutorService providerMonitor;
-
     @Override
     public void address(String addr) {
         try {
@@ -70,7 +64,7 @@ public class ZooRegistry extends AbstractRegistry {
             };
             zoo.subscribeStateChanges(listener);
         } catch (Exception e) {
-            e.printStackTrace();
+            LOG.error("" + e);
         }
         zoo.createPersistent(ROOT);
     }
@@ -115,13 +109,15 @@ public class ZooRegistry extends AbstractRegistry {
                         if (currentChilds == null) {
                             return;
                         }
-                        doServerResolveInfo(parentPath, currentChilds);
+                        // /lemming/com.xiaoyu.lemmingtest.HelloTask/client
+                        doServerResolveInfo(parentPath.split("/")[2], currentChilds);
                     }
                 };
                 zoo.subscribeChildChanges(ROOT + "/" + t + CLIENTS, listener);
                 // 保存listener
                 CHILD_LISTENER_MAP.putIfAbsent(ROOT + "/" + t + CLIENTS, listener);
             }
+
         }
         LOG.info("Init server listener task in zookeeper->{}", ROOT);
     }
@@ -133,13 +129,20 @@ public class ZooRegistry extends AbstractRegistry {
             for (String t : currentChilds) {
                 List<String> tcs = zoo.children(ROOT + "/" + t + CLIENTS);
                 if (!tcs.isEmpty()) {
-                    for (String p : tcs)
+                    for (String p : tcs) {
                         tasks.add(LemmingTask.toEntity(p));
+                    }
                 }
             }
         } else {
             // 已存在的task发生改变,掉线或下线,或新增节点,或重新上线
             if (currentChilds.isEmpty()) {
+                try {
+                    Storage storage = SpiManager.defaultSpiExtender(Storage.class);
+                    storage.removeTaskClientsByImpl(parentPath);
+                } catch (Exception e) {
+                    LOG.error("", e);
+                }
                 return;
             }
             for (String p : currentChilds) {
@@ -151,7 +154,7 @@ public class ZooRegistry extends AbstractRegistry {
                 Storage storage = SpiManager.defaultSpiExtender(Storage.class);
                 storage.batchSave(tasks);
             } catch (Exception e) {
-                e.printStackTrace();
+                LOG.error("", e);
             }
         }
 
@@ -206,18 +209,7 @@ public class ZooRegistry extends AbstractRegistry {
     }
 
     @Override
-    public List<String> getAllTask() {
-
-        return null;
-    }
-
-    @Override
     public void close() {
-        // 还没执行到监视器可能就结束了
-        if (providerMonitor != null) {
-            // 关闭检查器
-            providerMonitor.shutdown();
-        }
         ZooUtil tzoo = zoo;
         // 关闭所有
         tzoo.unsubscribeAll();

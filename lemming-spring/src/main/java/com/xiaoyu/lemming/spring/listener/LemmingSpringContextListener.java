@@ -63,14 +63,24 @@ public class LemmingSpringContextListener implements ApplicationListener<Applica
     public void onApplicationEvent(ApplicationEvent event) {
         if (event instanceof ContextRefreshedEvent) {
             doInitTask();
+            doStartContext();
         } else if (event instanceof ContextClosedEvent) {
             LOG.info("spring close event");
             try {
                 Context context = SpiManager.defaultSpiExtender(Context.class);
                 context.close();
             } catch (Exception e) {
-                e.printStackTrace();
+                LOG.error("" + e);
             }
+        }
+    }
+
+    private void doStartContext() {
+        try {
+            Context context = SpiManager.defaultSpiExtender(Context.class);
+            context.start();
+        } catch (Exception e) {
+            LOG.error("" + e);
         }
     }
 

@@ -16,6 +16,10 @@
         </dependency>
         <dependency>
             <groupId>com.xiaoyu</groupId>
+            <artifactId>lemming-common</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.xiaoyu</groupId>
             <artifactId>lemming-core-api</artifactId>
         </dependency>
         <dependency>
@@ -37,6 +41,10 @@
         <dependency>
             <groupId>com.xiaoyu</groupId>
             <artifactId>lemming-transport-beacon</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.xiaoyu</groupId>
+            <artifactId>lemming-spring</artifactId>
         </dependency>
 
         <dependency>

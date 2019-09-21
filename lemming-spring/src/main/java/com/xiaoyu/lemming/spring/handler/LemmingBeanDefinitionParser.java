@@ -26,9 +26,11 @@ import com.xiaoyu.lemming.core.api.LemmingTask;
 import com.xiaoyu.lemming.registry.Registry;
 import com.xiaoyu.lemming.spring.config.LemmingContext;
 import com.xiaoyu.lemming.spring.config.LemmingRegistry;
+import com.xiaoyu.lemming.spring.config.LemmingStorage;
 import com.xiaoyu.lemming.spring.config.Task;
 import com.xiaoyu.lemming.spring.constant.SpringConstant;
 import com.xiaoyu.lemming.spring.listener.LemmingSpringContextListener;
+import com.xiaoyu.lemming.storage.Storage;
 
 /**
  * @author hongyu
@@ -69,6 +71,8 @@ public class LemmingBeanDefinitionParser extends AbstractSimpleBeanDefinitionPar
                 doParseRegistry(element, parserContext, builder);
             } else if (cls == Task.class) {
                 doParseTask(element, parserContext, builder);
+            } else if (cls == LemmingStorage.class) {
+                doParseStorage(element, parserContext, builder);
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -92,10 +96,10 @@ public class LemmingBeanDefinitionParser extends AbstractSimpleBeanDefinitionPar
         }
 
         try {
+            //放在contextlistener里面启动
             Context context = SpiManager.holder(Context.class).target(name);
             context.initTransporter(transport);
-            context.start();
-
+            
             // 监听spring
             this.doRegisterLemmingListenerEvent(parserContext, app, transport);
         } catch (Exception e) {
@@ -165,11 +169,12 @@ public class LemmingBeanDefinitionParser extends AbstractSimpleBeanDefinitionPar
             LemmingTask task = new LemmingTask();
             task.setTaskId(taskId)
                     .setName(name)
-                    .setGroup("")
+                    .setTaskGroup("")
                     .setTaskImpl(taskImpl)
                     .setRule(rule == null ? "" : rule)
                     .setParams(null)
                     .setHost(NetUtil.localIP())// TODO
+                    .setCallType(0)
                     .setSide("client");
             taskSet.add(task);
             // 注册bean
@@ -183,7 +188,7 @@ public class LemmingBeanDefinitionParser extends AbstractSimpleBeanDefinitionPar
             GenericBeanDefinition def = new GenericBeanDefinition();
             def.setBeanClass(task.getClass());
             def.getPropertyValues().add("taskId", task.getTaskId());
-            def.getPropertyValues().add("group", task.getGroup());
+            def.getPropertyValues().add("taskGroup", task.getTaskGroup());
             def.getPropertyValues().add("taskImpl", task.getTaskImpl());
             def.getPropertyValues().add("params", task.getParams());
             def.setLazyInit(false);
@@ -194,6 +199,20 @@ public class LemmingBeanDefinitionParser extends AbstractSimpleBeanDefinitionPar
             LOG.error("Cannot resolve task,please check in xml tag lemming-task with id->{}", taskId);
             return;
         }
+    }
+
+    private void doParseStorage(Element element, ParserContext parserContext, BeanDefinitionBuilder builder)
+            throws Exception {
+        String user = element.getAttribute("user");
+        String name = element.getAttribute("name");
+        String password = element.getAttribute("password");
+        String url = element.getAttribute("url");
+        element.setAttribute("id", "lemming_storage_config");
+        if (StringUtil.isBlank(url)) {
+            throw new Exception(" Url cannot be null in xml tag->" + element.getTagName());
+        }
+        Storage storage = SpiManager.holder(Storage.class).target(name);
+        storage.init(url, user, password);
     }
 
     private void doRegisterLemmingListenerEvent(ParserContext parserContext, String app, String transport) {

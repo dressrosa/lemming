@@ -101,22 +101,10 @@ public class ZooUtil {
      * @param path
      * @return
      */
-    public IZkDataListener subscribeDataChanges(final String path) {
+    public void subscribeDataChanges(final String path, IZkDataListener listener) {
         // 检测是否已经创建
         createPersistent(path);
-        IZkDataListener listener = null;
-        client.subscribeDataChanges(path, listener = new IZkDataListener() {
-            @Override
-            public void handleDataDeleted(String dataPath) throws Exception {
-                // do nothing
-            }
-
-            @Override
-            public void handleDataChange(String dataPath, Object data) throws Exception {
-                // do nothing
-            }
-        });
-        return listener;
+        client.subscribeDataChanges(path, listener);
     }
 
     public void subscribeStateChanges(final IZkStateListener listener) {

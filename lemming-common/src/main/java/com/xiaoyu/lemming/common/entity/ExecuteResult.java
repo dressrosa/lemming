@@ -15,7 +15,7 @@ import java.io.Serializable;
 public class ExecuteResult implements Serializable {
 
     private static final long serialVersionUID = 1L;
-    private boolean isSuccess = false;
+    private boolean isSuccess;
     private String message = "";
     private String host;
 

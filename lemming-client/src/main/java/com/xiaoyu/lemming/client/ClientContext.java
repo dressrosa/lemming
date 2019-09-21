@@ -1,5 +1,7 @@
 package com.xiaoyu.lemming.client;
 
+import java.util.concurrent.Callable;
+import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -23,7 +25,7 @@ public class ClientContext implements Context {
     /**
      * 用于异步执行任务
      */
-    private static ThreadPoolExecutor Processor = new ThreadPoolExecutor(
+    private static final ThreadPoolExecutor Processor = new ThreadPoolExecutor(
             Runtime.getRuntime().availableProcessors(),
             Runtime.getRuntime().availableProcessors(),
             0L, TimeUnit.MILLISECONDS,
@@ -36,14 +38,7 @@ public class ClientContext implements Context {
                 }
             });
 
-    private Registry registry = null;
-
     public ClientContext() {
-    }
-
-    @Override
-    public ThreadPoolExecutor getProcessor() {
-        return Processor;
     }
 
     @Override
@@ -58,19 +53,21 @@ public class ClientContext implements Context {
 
     @Override
     public LemmingTask getLocalTask(String group, String taskId) {
+        LemmingTask task = null;
         try {
-            registry = SpiManager.defaultSpiExtender(Registry.class);
+            Registry registry = SpiManager.defaultSpiExtender(Registry.class);
+            task = registry.getLocalTask(group, taskId);
         } catch (Exception e) {
-            e.printStackTrace();
         }
-        final LemmingTask task = registry.getLocalTask(group, taskId);
         return task;
     }
 
     @Override
     public void close() {
-        if (registry != null) {
+        try {
+            Registry registry = SpiManager.defaultSpiExtender(Registry.class);
             registry.close();
+        } catch (Exception e) {
         }
     }
 
@@ -83,6 +80,16 @@ public class ClientContext implements Context {
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    @Override
+    public <T> Future<T> submit(Callable<T> runnable) {
+        return Processor.submit(runnable);
+    }
+
+    @Override
+    public int getActiveTaskCount() {
+        return Processor.getActiveCount();
     }
 
 }

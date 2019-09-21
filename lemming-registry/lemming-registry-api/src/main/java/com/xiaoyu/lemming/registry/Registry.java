@@ -4,8 +4,6 @@
  */
 package com.xiaoyu.lemming.registry;
 
-import java.util.List;
-
 import com.xiaoyu.lemming.core.api.LemmingTask;
 
 /**
@@ -43,8 +41,6 @@ public interface Registry {
     void registerTask(LemmingTask task);
 
     void initServerListener();
-
-    List<String> getAllTask();
 
     void storeLocalTask(LemmingTask task);
 

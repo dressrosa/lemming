@@ -2,12 +2,14 @@ package com.xiaoyu.lemming.storage.mysql.storage;
 
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
 import javax.sql.DataSource;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.ibatis.datasource.pooled.PooledDataSource;
 import org.apache.ibatis.logging.stdout.StdOutImpl;
 import org.apache.ibatis.mapping.Environment;
@@ -23,11 +25,13 @@ import org.slf4j.LoggerFactory;
 
 import com.xiaoyu.lemming.common.constant.ExecuteStateEnum;
 import com.xiaoyu.lemming.common.entity.ExecuteResult;
+import com.xiaoyu.lemming.common.entity.LemmingTaskClient;
 import com.xiaoyu.lemming.common.entity.LemmingTaskLog;
 import com.xiaoyu.lemming.common.util.TimeUtils;
 import com.xiaoyu.lemming.core.api.LemmingTask;
 import com.xiaoyu.lemming.storage.Storage;
 import com.xiaoyu.lemming.storage.mysql.mapper.LemmingTaskMapper;
+import com.xiaoyu.lemming.storage.mysql.query.LemmingTaskClientQuery;
 import com.xiaoyu.lemming.storage.mysql.query.LemmingTaskQuery;
 
 /**
@@ -40,6 +44,38 @@ public class MysqlStorage implements Storage {
     private static final Logger logger = LoggerFactory.getLogger(MysqlStorage.class);
 
     private SqlSessionFactory sqlSessionFactory = null;
+
+    public MysqlStorage() {
+    }
+
+    private void api(String url, String user, String password) {
+        DataSource dataSource = new PooledDataSource("com.mysql.cj.jdbc.Driver",
+                url, user, password);
+        TransactionFactory transactionFactory = new JdbcTransactionFactory();
+        Environment environment = new Environment("development", transactionFactory, dataSource);
+        Configuration config = new Configuration(environment);
+        config.setEnvironment(environment);
+        config.setLazyLoadingEnabled(true);
+        config.setUseGeneratedKeys(true);
+        config.setMultipleResultSetsEnabled(true);
+        if (logger.isDebugEnabled()) {
+            config.setLogPrefix("dao.");
+            config.setLogImpl(StdOutImpl.class);
+        }
+        config.setCacheEnabled(true);
+        config.setAggressiveLazyLoading(true);
+        config.setMapUnderscoreToCamelCase(true);
+        config.setJdbcTypeForNull(JdbcType.NULL);
+        config.getTypeAliasRegistry().registerAlias(LemmingTask.class);
+        config.addMapper(LemmingTaskMapper.class);
+        this.sqlSessionFactory = new SqlSessionFactoryBuilder().build(config);
+    }
+
+    @Override
+    public void init(String url, String user, String password) {
+        logger.info(" Connect to storage mysql");
+        api(url, user, password);
+    }
 
     @Override
     public void insert(LemmingTask task) {
@@ -54,7 +90,7 @@ public class MysqlStorage implements Storage {
                 mapper.insert(task);
                 session.commit();
             } catch (Exception e) {
-                e.printStackTrace();
+                logger.error("" + e);
                 session.rollback();
             }
         } finally {
@@ -76,61 +112,69 @@ public class MysqlStorage implements Storage {
         LemmingTaskQuery q = new LemmingTaskQuery();
         q.setApps(apps);
         q.setTaskIds(taskIds);
+        LemmingTaskClientQuery cq = new LemmingTaskClientQuery();
+        cq.setApps(apps);
+        cq.setTaskIds(taskIds);
 
         SqlSession session = this.sqlSessionFactory.openSession();
         try {
             LemmingTaskMapper mapper = session.getMapper(LemmingTaskMapper.class);
             List<LemmingTask> list = mapper.getTasks(q);
+            List<LemmingTaskClient> clientList = mapper.getTaskClients(cq);
+
             Map<String, LemmingTask> map = list.stream().collect(Collectors.toMap(a -> {
                 return a.getApp() + "_" + a.getTaskId();
             }, a -> a));
+
             List<LemmingTask> insertList = new ArrayList<>();
+            List<LemmingTaskClient> insertClientList = new ArrayList<>();
+            List<LemmingTaskClient> deleteClientList = new ArrayList<>();
+            Map<String, LemmingTaskClient> clientMap = new HashMap<>();
+
+            clientList.forEach(a -> {
+                String key = a.getApp() + "_" + a.getTaskId() + "_" + a.getHost();
+                if (clientMap.containsKey(key)) {
+                    deleteClientList.add(a);
+                } else {
+                    clientMap.put(a.getApp() + "_" + a.getTaskId() + "_" + a.getHost(), a);
+                }
+            });
+
             for (LemmingTask t : tasks) {
                 if (!map.containsKey(t.getApp() + "_" + t.getTaskId())) {
                     insertList.add(t);
                 }
-            }
-            if (!insertList.isEmpty()) {
-                try {
-                    mapper.batchInsert(insertList);
-                    session.commit();
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    session.rollback();
+                if (!clientMap.containsKey(t.getApp() + "_" + t.getTaskId() + "_" + t.getHost())) {
+                    LemmingTaskClient client = new LemmingTaskClient()
+                            .setApp(t.getApp())
+                            .setHost(t.getHost())
+                            .setTaskId(t.getTaskId());
+                    insertClientList.add(client);
+                } else {
+                    clientMap.remove(t.getApp() + "_" + t.getTaskId() + "_" + t.getHost());
                 }
             }
+            deleteClientList.addAll(clientMap.values());
+            try {
+                if (!insertList.isEmpty()) {
+                    mapper.batchInsert(insertList);
+                }
+                if (!deleteClientList.isEmpty()) {
+                    mapper.batchDeleteTaskClients(deleteClientList);
+                }
+                if (!insertClientList.isEmpty()) {
+                    mapper.batchInsertTaskClients(insertClientList);
+                }
+                session.commit();
+            } catch (Exception e) {
+                logger.error("" + e);
+                session.rollback(true);
+            }
+
         } finally {
             session.close();
         }
-        return 0;
-    }
-
-    public MysqlStorage() {
-        logger.info(" Connect to storage mysql");
-        api();
-    }
-
-    private void api() {
-        DataSource dataSource = new PooledDataSource("com.mysql.cj.jdbc.Driver",
-                "jdbc:mysql://127.0.0.1:3306/lemming", "root", "1234");
-        TransactionFactory transactionFactory = new JdbcTransactionFactory();
-        Environment environment = new Environment("development", transactionFactory, dataSource);
-        Configuration config = new Configuration(environment);
-        config.setEnvironment(environment);
-        config.setLazyLoadingEnabled(true);
-        config.setUseGeneratedKeys(true);
-        config.setMultipleResultSetsEnabled(true);
-        if (logger.isDebugEnabled()) {
-            config.setLogPrefix("dao.");
-            config.setLogImpl(StdOutImpl.class);
-        }
-        config.setCacheEnabled(true);
-        config.setAggressiveLazyLoading(true);
-        config.setMapUnderscoreToCamelCase(true);
-        config.setJdbcTypeForNull(JdbcType.NULL);
-        config.getTypeAliasRegistry().registerAlias(LemmingTask.class);
-        config.addMapper(LemmingTaskMapper.class);
-        this.sqlSessionFactory = new SqlSessionFactoryBuilder().build(config);
+        return 1;
     }
 
     // private void xml() {
@@ -171,15 +215,50 @@ public class MysqlStorage implements Storage {
     @Override
     public List<LemmingTask> fetchAllTasks() {
         SqlSession session = sqlSessionFactory.openSession();
-        List<LemmingTask> tasks = null;
         try {
+            LemmingTaskQuery query = new LemmingTaskQuery();
             LemmingTaskMapper mapper = session.getMapper(LemmingTaskMapper.class);
-            tasks = mapper.getTasks(new LemmingTaskQuery());
+            Long count = mapper.count(query);
+            long pageSize = 256;// 2^8
+            long page = (count + pageSize - 1) / pageSize;
+            long startNum = 0;
+            query.setPageSize(pageSize);
+            List<LemmingTask> total = new ArrayList<>(count.intValue());
+            List<LemmingTask> tasks = new ArrayList<>(0);
+            for (int i = 0; i < page; i++) {
+                query.setStartNum(startNum);
+                tasks = mapper.getTasks(query);
+                List<String> apps = new ArrayList<>(tasks.size());
+                List<String> taskIds = new ArrayList<>(tasks.size());
+                Map<String, LemmingTask> tasksMap = new HashMap<>(tasks.size());
+                if (tasks != null) {
+                    tasks.forEach(a -> {
+                        apps.add(a.getApp());
+                        taskIds.add(a.getTaskId());
+                        tasksMap.put(a.getApp() + "_" + a.getTaskId(), a);
+                    });
+                }
+                if (!apps.isEmpty()) {
+                    LemmingTaskClientQuery cQuery = new LemmingTaskClientQuery();
+                    cQuery.setApps(apps);
+                    cQuery.setTaskIds(taskIds);
+                    List<LemmingTaskClient> clients = mapper.getTaskClients(cQuery);
+                    clients.forEach(a -> {
+                        LemmingTask t = tasksMap.get(a.getApp() + "_" + a.getTaskId());
+                        if (t != null) {
+                            t.getClients().add(a);
+                        }
+                    });
+                }
+                if (tasks != null && !tasks.isEmpty()) {
+                    total.addAll(tasks);
+                }
+                startNum += pageSize;
+            }
+            return total;
         } finally {
             session.close();
         }
-        return tasks;
-
     }
 
     @Override
@@ -195,14 +274,12 @@ public class MysqlStorage implements Storage {
             session.close();
         }
         return tasks;
-
     }
 
     @Override
     public int saveLog(LemmingTask task, ExecuteResult ret) {
         LemmingTaskLog taskLog = new LemmingTaskLog();
-        taskLog.setGroup(task.getGroup())
-                .setApp(task.getApp())
+        taskLog.setApp(task.getApp())
                 .setTaskId(task.getTaskId())
                 .setHost(ret.getHost() == null ? "" : ret.getHost())
                 .setMessage(ret.getMessage() == null ? "" : ret.getMessage())
@@ -217,6 +294,49 @@ public class MysqlStorage implements Storage {
             LemmingTaskMapper mapper = session.getMapper(LemmingTaskMapper.class);
             mapper.insertLog(taskLog);
             session.commit();
+        } finally {
+            session.close();
+        }
+        return 1;
+    }
+
+    @Override
+    public int removeTaskClientsByImpl(String taskImpl) {
+        if (StringUtils.isBlank(taskImpl)) {
+            return 0;
+        }
+        LemmingTaskQuery q = new LemmingTaskQuery();
+        q.setTaskImpl(taskImpl);
+
+        List<String> apps = new ArrayList<>();
+        List<String> taskIds = new ArrayList<>();
+
+        LemmingTaskClientQuery cq = new LemmingTaskClientQuery();
+
+        SqlSession session = this.sqlSessionFactory.openSession();
+        try {
+            LemmingTaskMapper mapper = session.getMapper(LemmingTaskMapper.class);
+            List<LemmingTask> list = mapper.getTasks(q);
+            if (list.isEmpty()) {
+                return 0;
+            }
+            list.forEach(a -> {
+                apps.add(a.getApp());
+                taskIds.add(a.getTaskId());
+            });
+            cq.setApps(apps);
+            cq.setTaskIds(taskIds);
+            List<LemmingTaskClient> clientList = mapper.getTaskClients(cq);
+            try {
+                if (!clientList.isEmpty()) {
+                    mapper.batchDeleteTaskClients(clientList);
+                }
+                session.commit();
+            } catch (Exception e) {
+                logger.error("" + e);
+                session.rollback(true);
+            }
+
         } finally {
             session.close();
         }

@@ -5,6 +5,8 @@ package com.xiaoyu.lemming.monitor;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.annotation.ImportResource;
+import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 
 /**
  * @author hongyu
@@ -12,6 +14,8 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
  * @description
  */
 @SpringBootApplication
+@EnableWebMvc
+@ImportResource("classpath:beacon.xml")
 public class LemmingMonitorApplication {
 
     public static void main(String args[]) {

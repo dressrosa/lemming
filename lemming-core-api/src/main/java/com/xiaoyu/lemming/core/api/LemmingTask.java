@@ -1,5 +1,10 @@
 package com.xiaoyu.lemming.core.api;
 
+import java.util.LinkedList;
+import java.util.List;
+
+import com.xiaoyu.lemming.common.entity.LemmingTaskClient;
+
 /**
  * @author hongyu
  * @param
@@ -20,11 +25,13 @@ public class LemmingTask implements Task {
     // 任务实现类
     private String taskImpl;
     // 任务类型 1 定时任务 2临时任务(只执行一次) TODO
-    private Integer taskType;
+    // private Integer taskType;
+    // 调用类型 0 简单调用 1 广播调用
+    private Integer callType;
     // 名称
     private String name;
     // 任务所属组别
-    private String group;
+    private String taskGroup;
     // 任务所属应用
     private String app;
     // 执行参数
@@ -54,6 +61,35 @@ public class LemmingTask implements Task {
 
     // 机器ip
     private String host;
+
+    private List<LemmingTaskClient> clients = new LinkedList<>();
+
+    @Override
+    public String toString() {
+        return "group:" + taskGroup + ";app:" + app + ";taskId:" + taskId;
+    }
+
+    public Integer getCallType() {
+        return callType;
+    }
+
+    public LemmingTask setCallType(Integer callType) {
+        this.callType = callType;
+        return this;
+    }
+
+    public List<LemmingTaskClient> getClients() {
+        return clients;
+    }
+
+    public LemmingTask setClients(List<LemmingTaskClient> clients) {
+        this.clients = clients;
+        return this;
+    }
+
+    public LemmingTask(String taskId) {
+        this.taskId = taskId;
+    }
 
     public String getTraceId() {
         return traceId;
@@ -110,10 +146,6 @@ public class LemmingTask implements Task {
 
     public void setId(Integer id) {
         this.id = id;
-    }
-
-    public LemmingTask(String taskId) {
-        this.taskId = taskId;
     }
 
     public String getSide() {
@@ -192,12 +224,12 @@ public class LemmingTask implements Task {
         return this;
     }
 
-    public String getGroup() {
-        return group;
+    public String getTaskGroup() {
+        return taskGroup;
     }
 
-    public LemmingTask setGroup(String group) {
-        this.group = group;
+    public LemmingTask setTaskGroup(String taskGroup) {
+        this.taskGroup = taskGroup;
         return this;
     }
 
@@ -251,7 +283,7 @@ public class LemmingTask implements Task {
 
     @Override
     public int hashCode() {
-        String key = this.toPath();
+        String key = this.getTaskGroup() + "_" + this.getTaskId();
         int h;
         return (key == null) ? 0 : (h = key.hashCode()) ^ (h >>> 16);
     }
@@ -268,7 +300,10 @@ public class LemmingTask implements Task {
             return false;
         }
         LemmingTask p = (LemmingTask) obj;
-        if (this.toPath().equals(p.toPath())) {
+        // if (this.toPath().equals(p.toPath())) {
+        // return true;
+        // }
+        if (p.getTaskGroup().equals(this.getTaskGroup()) && p.getTaskId().equals(this.getTaskId())) {
             return true;
         }
         return false;
@@ -280,13 +315,14 @@ public class LemmingTask implements Task {
                 .append("&taskImpl=").append(this.getTaskImpl())
                 .append("&name=").append(this.getName())
                 .append("&app=").append(this.getApp())
-                .append("&group=").append(this.getGroup())
+                .append("&group=").append(this.getTaskGroup())
                 .append("&rule=").append(this.getRule().replace('/', '.'))
                 .append("&protocol=").append(this.getProtocol())
                 .append("&transport=").append(this.getTransport())
                 .append("&usable=").append(this.getUsable() == null ? 0 : this.getUsable())
                 .append("&suspension=").append(this.getSuspension() == null ? 0 : this.getSuspension())
                 .append("&host=").append(this.getHost())
+                .append("&callType=").append(this.getCallType() == null ? 0 : this.getCallType())
                 .append("&side=").append(this.getSide());
         return builder.toString();
     }
@@ -304,7 +340,7 @@ public class LemmingTask implements Task {
             } else if (str.startsWith("app")) {
                 t.setApp(str.substring(4));
             } else if (str.startsWith("group")) {
-                t.setGroup(str.substring(6));
+                t.setTaskGroup(str.substring(6));
             } else if (str.startsWith("rule")) {
                 t.setRule(str.substring(5).replace('.', '/'));
             } else if (str.startsWith("protocol")) {
@@ -317,6 +353,8 @@ public class LemmingTask implements Task {
                 t.setSuspension(Integer.valueOf(str.substring(11)));
             } else if (str.startsWith("host")) {
                 t.setHost(str.substring(5));
+            } else if (str.startsWith("callType")) {
+                t.setCallType(Integer.valueOf(str.substring(9)));
             } else if (str.startsWith("side")) {
                 t.setSide(str.substring(5));
             }

@@ -2,26 +2,30 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
 <mapper namespace="com.xiaoyu.lemming.storage.mysql.mapper.LemmingTaskMapper">
     <sql id="Base_Column_List">
-
+        a.id as id,
+        a.task_id as taskId,
+        a.task_group as
+        taskGroup,
+        a.app as app,
+        a.rule as rule,
+        a.transport as
+        transport,
+        a.call_type as callType,
+        a.params as params,
+        a.usable as
+        usable,
+        a.suspension as
+        suspension
     </sql>
 
     <select id="getOneTask" resultType="com.xiaoyu.lemming.core.api.LemmingTask">
         select
-        a.id as id,
-        a.task_id as taskId,
-        a.`group`as
-        "group",
-        a.app as app,
-        a.rule as rule,
-        a.transport as transport,
-        a.params as params,
-        a.usable as
-        usable,
-        a.suspension as suspension
+        <include refid="Base_Column_List" />
         from biz_task as a
-        where a.task_id =#{taskId}
-        a.`group` =
-        #{group}
+        where
+        a.task_id =#{taskId}
+        a.task_group =
+        #{taskGroup}
         and a.usable =
         1
         and
@@ -31,15 +35,7 @@
     <select id="getTasks" resultType="com.xiaoyu.lemming.core.api.LemmingTask"
         parameterType="com.xiaoyu.lemming.storage.mysql.query.LemmingTaskQuery">
         select
-        a.id as id,
-        a.task_id as taskId,
-        a.`group` as "group",
-        a.app as app,
-        a.rule as rule,
-        a.transport as transport,
-        a.params as params,
-        a.usable as usable,
-        a.suspension as suspension
+        <include refid="Base_Column_List" />
         from biz_task as a
         where
         a.del_flag=0
@@ -48,6 +44,43 @@
         </if>
         <if test="taskId != null">
             and a.task_id = #{taskId}
+        </if>
+        <if test="taskImpl != null">
+            and a.task_impl = #{taskImpl}
+        </if>
+        <if test="apps != null and apps.size > 0">
+            and a.app in
+            <foreach collection="apps" item="item" index="index" open="(" separator=","
+                close=")">
+                #{item}
+            </foreach>
+        </if>
+        <if test="taskIds != null and taskIds.size > 0">
+            and a.task_id in
+            <foreach collection="taskIds" item="item" index="index" open="(" separator=","
+                close=")">
+                #{item}
+            </foreach>
+        </if>
+        <if test="pageSize > 0">
+            limit #{startNum}, #{pageSize}
+        </if>
+    </select>
+
+    <select id="count" resultType="java.lang.Long"
+        parameterType="com.xiaoyu.lemming.storage.mysql.query.LemmingTaskQuery">
+        select
+        count(*)
+        from biz_task as a
+        where a.del_flag=0
+        <if test="app != null">
+            and a.app = #{app}
+        </if>
+        <if test="taskId != null">
+            and a.task_id = #{taskId}
+        </if>
+        <if test="taskImpl != null">
+            and a.task_impl = #{taskImpl}
         </if>
         <if test="apps != null and apps.size > 0">
             and a.app in
@@ -65,20 +98,11 @@
         </if>
     </select>
 
+
     <select id="getUpdatedTasks" resultType="com.xiaoyu.lemming.core.api.LemmingTask"
         parameterType="java.lang.String">
         select
-        a.id as id,
-        a.task_id as taskId,
-        a.`group` as "group",
-        a.app as app,
-        a.rule
-        as rule,
-        a.transport as transport,
-        a.params as params,
-        a.usable as usable,
-        a.suspension as
-        suspension
+        <include refid="Base_Column_List" />
         from biz_task as a
         where
         a.update_date > TIMESTAMP(#{updateDate})
@@ -89,7 +113,7 @@
         task_id,
         task_impl,
         name,
-        `group`,
+        task_group,
         app,
         rule,
         transport,
@@ -102,7 +126,7 @@
         #{item.taskId},
         #{item.taskImpl},
         #{item.name},
-        #{item.group},
+        #{item.taskGroup},
         #{item.app},
         #{item.rule},
         #{item.transport},
@@ -122,7 +146,7 @@
         task_id,
         task_impl,
         name,
-        `group`,
+        task_group,
         app,
         rule,
         transport,
@@ -136,7 +160,7 @@
             #{item.taskId},
             #{item.taskImpl},
             #{item.name},
-            #{item.group},
+            #{item.taskGroup},
             #{item.app},
             #{item.rule},
             #{item.transport},
@@ -173,12 +197,10 @@
         </if>
     </update>
 
-
     <!--log -->
     <insert id="insertLog" parameterType="com.xiaoyu.lemming.common.entity.LemmingTaskLog">
         insert into biz_task_log(
         trace_id,
-        `group`,
         app,
         task_id,
         host,
@@ -188,7 +210,6 @@
         values
         (
         #{traceId},
-        #{group},
         #{app},
         #{taskId},
         #{host},
@@ -196,4 +217,68 @@
         #{message}
         )
     </insert>
+
+    <!-- taskCLient -->
+
+    <select id="getTaskClients"
+        resultType="com.xiaoyu.lemming.common.entity.LemmingTaskClient"
+        parameterType="com.xiaoyu.lemming.storage.mysql.query.LemmingTaskClientQuery">
+        select
+        a.id as id,
+        a.task_id as taskId,
+        a.app as app,
+        a.host as host
+        from biz_task_client as a
+        where
+        a.del_flag=0
+        <if test="app != null">
+            and a.app = #{app}
+        </if>
+        <if test="taskId != null">
+            and a.task_id = #{taskId}
+        </if>
+        <if test="apps != null and apps.size > 0">
+            and a.app in
+            <foreach collection="apps" item="item" index="index" open="(" separator=","
+                close=")">
+                #{item}
+            </foreach>
+        </if>
+        <if test="taskIds != null and taskIds.size > 0">
+            and a.task_id in
+            <foreach collection="taskIds" item="item" index="index" open="(" separator=","
+                close=")">
+                #{item}
+            </foreach>
+        </if>
+    </select>
+
+    <insert id="batchInsertTaskClients" parameterType="java.util.List">
+        insert into biz_task_client(
+        task_id,
+        app,
+        host
+        )
+        values
+        <foreach collection="list" item="item" index="index" separator=",">
+            (
+            #{item.taskId},
+            #{item.app},
+            #{item.host}
+            )
+        </foreach>
+    </insert>
+
+    <update id="batchDeleteTaskClients" parameterType="java.util.List">
+        update biz_task_client
+        set
+        del_flag = 1
+        where del_flag = 0
+        and id in
+        <foreach collection="list" item="item" index="index" open="(" separator=","
+            close=")">
+            #{item.id}
+        </foreach>
+    </update>
+
 </mapper>

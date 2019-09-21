@@ -3,7 +3,8 @@
  */
 package com.xiaoyu.lemming.core.api;
 
-import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.Callable;
+import java.util.concurrent.Future;
 
 /**
  * @author hongyu
@@ -22,5 +23,8 @@ public interface Context {
 
     void close();
 
-    ThreadPoolExecutor getProcessor();
+    <T> Future<T> submit(Callable<T> runnable);
+
+    int getActiveTaskCount();
+
 }

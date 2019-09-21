@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<header th:replace="common/header :: common_header" />
+<style type="text/css">
+</style>
+</head>
+<body>
+    <div>
+        <navi th:replace="common/navigation :: navigation" />
+    </div>
+    <div class="main">
+        <div class="content">
+            <div class="form-group">
+                <form id="search_form" class="form-inline" role="form" action="../task/list" method="post">
+                    <div class="form-group">
+                        <label class="" for="app">所属应用</label> <input type="text" class="form-control" id="query_app" name="query_app"
+                            placeholder="请输入名称" />
+                    </div>
+                    <div class="form-group">
+                        <label class="" for="name">名称</label> <input type="text" class="form-control" id="query_name" name="query_name"
+                            placeholder="请输入名称" />
+                    </div>
+                    <div class="form-group">
+                        <label class="" for="app">任务ID</label> <input type="text" class="form-control" id="query_taskId" name="query_taskId"
+                            placeholder="请输入任务ID" />
+                    </div>
+                    <div class="form-group">
+                        <button id="search_btn" type="button" class="btn btn-default btn-primary">查询</button>
+                    </div>
+                </form>
+            </div>
+            <div class="table-responsive " id="task_table">
+                <table class="table table-hover table-striped" th:fragment="Task_List">
+                    <caption>
+                        <h3>任务列表</h3>
+                    </caption>
+                    <thead>
+                        <tr>
+                            <th>名称</th>
+                            <th>任务ID</th>
+                            <th>所属组织</th>
+                            <th>所属应用</th>
+                            <th>执行规则</th>
+                            <th>可用</th>
+                            <th>暂停</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="task:${taskList}">
+                            <td><dd th:text="${task.name}"></dd></td>
+                            <td><dd th:text="${task.taskId}"></dd></td>
+                            <td><dd th:text="${task.taskGroup}"></dd></td>
+                            <td><dd th:text="${task.app}"></dd></td>
+                            <td><dd th:text="${task.rule}"></dd></td>
+                            <td th:switch="${task.usable}"><dd th:case="0">否</dd>
+                                <dd th:case="1">是</dd></td>
+                            <td th:switch="${task.suspension}"><dd th:case="0">否</dd>
+                                <dd th:case="1">是</dd></td>
+                            <td><dd>
+                                    <button type="button" class="btn btn-link btn-sm" contenteditable="true"
+                                        th:onclick="'javascript:showModal(\''+${task.app}+'\',\''+${task.taskId}+'\')'">详情</button>
+                                </dd>
+                                <dd>
+                                    <button type="button" class="btn btn-link btn-sm" contenteditable="true"
+                                        th:onclick="'javascript:showEditModal(\''+${task.app}+'\',\''+${task.taskId}+'\')'">修改</button>
+                                </dd>
+                                <dd>
+                                    <button type="button" class="btn btn-link btn-sm" contenteditable="true"
+                                        th:onclick="'javascript:doExecuteNow(\''+${task.app}+'\',\''+${task.taskId}+'\')'">立即执行</button>
+                                </dd></td>
+                        </tr>
+                        <input type="hidden" id="pageNum" th:value="${pageNum}" />
+                        <input type="hidden" id="isEndPage" th:value="${isEndPage}" />
+                    </tbody>
+                </table>
+            </div>
+            <div class="container">
+                <ul class="pager">
+                    <li id="last_page"><a href="#" onclick="doSearch(-1)">上一页</a></li>
+                    <li id="next_page"><a href="#" onclick="doSearch(1)">下一页</a></li>
+                </ul>
+            </div>
+        </div>
+        <footer th:replace="common/footer :: common_footer" />
+        <!-- 模态框（Modal） -->
+        <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header ">
+                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                        <h4 class="modal-title text-primary" id="myModalLabel">详情</h4>
+                    </div>
+                    <div class="modal-body" id="detail_modal_body">
+                        <form class="form-horizontal text-muted" role="form" th:fragment="Task_Modal_Detail" th:if="${taskDetail != null}">
+                            <div class="form-group" style="border-bottom: 1px solid #ddd;">
+                                <label class="col-sm-2 control-label">名称</label>
+                                <div class="col-sm-10">
+                                    <p class="form-control-static" th:text="${taskDetail.name}"></p>
+                                </div>
+                                <label class="col-sm-2 control-label">ID</label>
+                                <div class="col-sm-10 ">
+                                    <p class="form-control-static" th:text="${taskDetail.taskId}"></p>
+                                </div>
+                                <label class="col-sm-2 control-label">所属组织</label>
+                                <div class="col-sm-10 ">
+                                    <p class="form-control-static" th:text="${taskDetail.taskGroup}"></p>
+                                </div>
+                                <label class="col-sm-2 control-label">所属应用</label>
+                                <div class="col-sm-10 ">
+                                    <p class="form-control-static" th:text="${taskDetail.app}"></p>
+                                </div>
+                            </div>
+                            <div class="form-group " style="border-bottom: 1px solid #ddd;">
+                                <label class="col-sm-2 control-label">任务实现</label>
+                                <div class="col-sm-10 ">
+                                    <p class="form-control-static" th:text="${taskDetail.taskImpl}"></p>
+                                </div>
+                                <label class="col-sm-2 control-label">执行规则</label>
+                                <div class="col-sm-10 ">
+                                    <p class="form-control-static" th:text="${taskDetail.rule}"></p>
+                                </div>
+                                <label class="col-sm-2 control-label">调用参数</label>
+                                <div class="col-sm-10 ">
+                                    <p class="form-control-static" th:text="${taskDetail.params}"></p>
+                                </div>
+                                <label class="col-sm-2 control-label">调用类型</label>
+                                <div class="col-sm-10 " th:switch="${taskDetail.callType}">
+                                    <p class="form-control-static" th:case="0">简单调用</p>
+                                    <p class="form-control-static" th:case="1">广播调用</p>
+                                </div>
+                                <label class="col-sm-2 control-label">是否可用</label>
+                                <div class="col-sm-10 " th:switch="${taskDetail.usable}">
+                                    <p class="form-control-static" th:case="0">否</p>
+                                    <p class="form-control-static" th:case="1">是</p>
+                                </div>
+                                <label class="col-sm-2 control-label">是否暂停</label>
+                                <div class="col-sm-10 " th:switch="${taskDetail.suspension}">
+                                    <p class="form-control-static" th:case="0">否</p>
+                                    <p class="form-control-static" th:case="1">是</p>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="col-sm-2 control-label">连接机器</label>
+                                <div class="col-sm-10 ">
+                                    <tr th:each="client:${taskDetail.clients}">
+                                        <td><dd th:text="${client.host}"></dd></td>
+                                    </tr>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+                    </div>
+                </div>
+                <!-- /.modal-content -->
+            </div>
+            <!-- /.modal -->
+        </div>
+        <!-- 模态框（Modal） -->
+        <div class="modal fade" id="myEditModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header ">
+                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                        <h4 class="modal-title text-primary" id="myModalLabel">编辑</h4>
+                    </div>
+                    <div class="modal-body" id="edit_modal_body">
+                        <form id="edit_form" class="form-horizontal text-muted" role="form" th:fragment="Task_Modal_Edit"
+                            th:if="${taskDetail != null}">
+                            <div class="alert alert-warning form-group" id="alert_message_box" style="display: none;">
+                                <!--   <a href="#" class="" data-dismiss="alert"> &times;</a> -->
+                                <p id="alert_message"></p>
+                            </div>
+                            <input type="hidden" name="id" th:value="${taskDetail.id}" readonly="readonly" />
+                            <div class="form-group ">
+                                <label for="" class="col-sm-2 control-label">名称</label>
+                                <div class="col-sm-10">
+                                    <input type="input" name="name" class="form-control" th:value="${taskDetail.name}" />
+                                </div>
+                            </div>
+                            <div class="form-group ">
+                                <label for="" class="col-sm-2 control-label">ID</label>
+                                <div class="col-sm-10">
+                                    <input type="input" name="taskId" class="form-control" th:value="${taskDetail.taskId}" readonly="readonly" />
+                                </div>
+                            </div>
+                            <div class="form-group ">
+                                <label for="" class="col-sm-2 control-label">所属应用</label>
+                                <div class="col-sm-10">
+                                    <input type="input" name="app" class="form-control" th:value="${taskDetail.app}" readonly="readonly" />
+                                </div>
+                            </div>
+                            <div class="form-group ">
+                                <label for="" class="col-sm-2 control-label">所属组织</label>
+                                <div class="col-sm-10">
+                                    <input type="input" name="taskGroup" class="form-control" th:value="${taskDetail.taskGroup}" />
+                                </div>
+                            </div>
+                            <div class="form-group ">
+                                <label for="" class="col-sm-2 control-label">任务实现</label>
+                                <div class="col-sm-10">
+                                    <input type="input" class="form-control" th:value="${taskDetail.taskImpl}" readonly="readonly" />
+                                </div>
+                            </div>
+                            <div class="form-group ">
+                                <label for="" class="col-sm-2 control-label">执行规则</label>
+                                <div class="col-sm-10">
+                                    <input type="input" name="rule" class="form-control" th:value="${taskDetail.rule}" />
+                                </div>
+                            </div>
+                            <div class="form-group ">
+                                <label for="" class="col-sm-2 control-label">调用参数</label>
+                                <div class="col-sm-10">
+                                    <input type="input" name="params" class="form-control" th:value="${taskDetail.params}" />
+                                </div>
+                            </div>
+                            <div class="form-group ">
+                                <label for="" class="col-sm-2 control-label">调用类型</label>
+                                <div class="col-sm-10 ">
+                                    <select name="callType" th:field="${taskDetail.callType}" th:value="${taskDetail.callType}"
+                                        class="form-control select2">
+                                        <option value="">-- 请选择 --</option>
+                                        <option th:selected="${taskDetail.callType == 0}" value="0">简单调用</option>
+                                        <option th:selected="${taskDetail.callType == 1}" value="1">广播调用</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="form-group ">
+                                <label for="" class="col-sm-2 control-label">是否暂停</label>
+                                <div class="col-sm-10 ">
+                                    <select name="suspension" th:field="${taskDetail.suspension}" th:value="${taskDetail.suspension}"
+                                        class="form-control select2">
+                                        <option value="">-- 请选择 --</option>
+                                        <option th:selected="${taskDetail.suspension == 0}" value="0">否</option>
+                                        <option th:selected="${taskDetail.suspension == 1}" value="1">是</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="form-group ">
+                                <label for="" class="col-sm-2 control-label">是否可用</label>
+                                <div class="col-sm-10 ">
+                                    <select name="usable" th:value="${taskDetail.usable}" class="form-control select2">
+                                        <option value="">-- 请选择 --</option>
+                                        <option th:selected="${taskDetail.usable == 0}" value="0">否</option>
+                                        <option th:selected="${taskDetail.usable == 1}" value="1">是</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+                        <button type="button" class="btn btn-primary" onclick="doEdit()">提交更改</button>
+                    </div>
+                </div>
+                <!-- /.modal-content -->
+            </div>
+            <!-- /.modal -->
+        </div>
+    </div>
+    <script type="text/javascript" th:inline="javascript">
+                    function showModal(app, taskId) {
+                        $('#myModal').on('show.bs.modal', function() {
+                            $.ajax({
+                                url : "../task/detail",
+                                type : 'get',
+                                data : {
+                                    'app' : app,
+                                    'taskId' : taskId,
+                                    'isEdit' : 0
+                                },
+                                success : function(data) {
+                                    $("#detail_modal_body").html(data);
+                                }
+                            })
+                        })
+                        $('#myModal').modal({});
+                    }
+                    function showEditModal(app, taskId) {
+                        $('#myEditModal').on('show.bs.modal', function() {
+                            $.ajax({
+                                url : "../task/detail",
+                                type : 'get',
+                                data : {
+                                    'app' : app,
+                                    'taskId' : taskId,
+                                    'isEdit' : 1
+                                },
+                                success : function(data) {
+                                    $("#edit_modal_body").html(data);
+                                }
+                            })
+                        })
+                        $('#myEditModal').modal({});
+                    }
+
+                    var isExecuting = false;
+                    function doExecuteNow(app, taskId) {
+                        if (isExecuting == true) {
+                            showGlobalMessage("请稍后重试");
+                        }
+                        isExecuting = true;
+                        $.ajax({
+                            url : "../api/v1/task/execute",
+                            type : 'post',
+                            async : false,
+                            data : {
+                                'app' : app,
+                                'taskId' : taskId
+                            },
+                            success : function(data) {
+                                showGlobalMessage("操作成功");
+                            }
+                        })
+                        isExecuting = false;
+                    }
+
+                    function showGlobalMessage(msg) {
+                        new jBox('Notice', {
+                            color : 'green',
+                            animation : 'tada',
+                            content : msg
+                        });
+                    }
+                    function showMessage(msg) {
+                        $("#alert_message").html(msg);
+                        $("#alert_message_box").css("display", '');
+                    }
+                    function doEdit() {
+                        $.ajax({
+                            url : "../api/v1/task/update",
+                            type : 'post',
+                            async : false,
+                            data : $('#edit_form').serialize(),
+                            success : function(data) {
+                                let ret = jQuery.parseJSON(data);
+                                if (ret.code == 0) {
+                                    $('#myEditModal').modal("hide");
+                                } else {
+                                    showMessage(ret.message);
+                                    return;
+                                }
+                            },
+                            error : function(data) {
+                                showMessage(data);
+                                return;
+                            }
+                        })
+                        doSearch(0);
+                    }
+                    $('#search_btn').click(function() {
+                        doSearch(0);
+                    });
+                    function doSearch(param) {
+                        let isEndPage = $("#isEndPage").val();
+                        if (isEndPage == 'true') {
+                            if (param > 0) {
+                                return;
+                            }
+                        }
+                        let num = 1;
+                        if (param != 0) {
+                            num = parseInt($("#pageNum").val()) + param;
+                        } else {
+                            num = parseInt($("#pageNum").val());
+                        }
+                        var url = '../task/list';
+                        $.ajax({
+                            url : url,
+                            type : 'get',
+                            data : {
+                                'name' : $("#query_name").val(),
+                                'app' : $("#query_app").val(),
+                                'taskId' : $("#query_taskId").val(),
+                                'pageNum' : num,
+                            },
+                            success : function(data) {
+                                let isEndPage = $("#isEndPage").val();
+                                if (isEndPage == 'true') {
+                                    $("#next_page").addClass("disabled")
+                                } else {
+                                    $("#next_page").removeClass("disabled")
+                                }
+                                $("#task_table").html(data);
+                            }
+                        })
+                    }
+                </script>
+</body>
+</html>

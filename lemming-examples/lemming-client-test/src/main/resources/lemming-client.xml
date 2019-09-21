@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:lemming="http://www.iwouldbe.com/schema/lemming"
+    xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+    http://www.iwouldbe.com/schema/lemming http://www.iwouldbe.com/schema/lemming.xsd">
+
+    <lemming:context name="client" transport="beacon" app="lemming" />
+
+    <lemming:registry address="127.0.0.1:2181" protocol="zookeeper" />
+
+    <lemming:task taskId="helloMyTask" taskImpl="com.xiaoyu.lemmingtest.HelloTask"
+        name="欢迎任务" rule="0 1/2 5-23 * * ? " />
+
+    <lemming:task taskId="helloMyTask1" taskImpl="com.xiaoyu.lemmingtest.HelloTask"
+        name="欢迎任务" rule="0 1/2 5-23 * * ? " />
+
+    <lemming:task taskId="helloMyTask2" taskImpl="com.xiaoyu.lemmingtest.HelloTask"
+        name="欢迎任务" rule="0 1/2 5-23 * * ? " />
+
+    <lemming:task taskId="helloMyTask3" taskImpl="com.xiaoyu.lemmingtest.HelloTask"
+        name="欢迎任务" rule="0 1/2 5-23 * * ? " />
+
+    <lemming:task taskId="helloMyTask4" taskImpl="com.xiaoyu.lemmingtest.HelloTask"
+        name="欢迎任务" rule="0 1/2 5-23 * * ? " />
+
+    <lemming:task taskId="helloMyTask5" taskImpl="com.xiaoyu.lemmingtest.HelloTask"
+        name="欢迎任务" rule="0 1/2 5-23 * * ? " />
+
+    <lemming:task taskId="helloMyTask6" taskImpl="com.xiaoyu.lemmingtest.HelloTask"
+        name="欢迎任务" rule="0 1/2 5-23 * * ? " />
+
+    <lemming:task taskId="helloMyTask7" taskImpl="com.xiaoyu.lemmingtest.HelloTask"
+        name="欢迎任务" rule="0 1/2 5-23 * * ? " />
+
+    <lemming:task taskId="helloMyTask8" taskImpl="com.xiaoyu.lemmingtest.HelloTask"
+        name="欢迎任务" rule="0 1/2 5-23 * * ? " />
+    <lemming:task taskId="helloMyTask9" taskImpl="com.xiaoyu.lemmingtest.HelloTask"
+        name="欢迎任务" rule="0 1/2 5-23 * * ? " />
+
+    <lemming:task taskId="helloMyTask10" taskImpl="com.xiaoyu.lemmingtest.HelloTask"
+        name="欢迎任务" rule="0 1/2 5-23 * * ? " />
+
+    <bean id="helloTask" class="com.xiaoyu.lemmingtest.HelloTask" />
+</beans>

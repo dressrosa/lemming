@@ -3,6 +3,8 @@
  */
 package com.xiaoyu.lemming.core.api;
 
+import java.util.List;
+
 /**
  * @author hongyu
  * @date 2019-03
@@ -15,7 +17,7 @@ public interface Worker {
      * 
      * @param task
      */
-    void handle(LemmingTask task);
+    void handle(LemmingTask task) throws Exception;
 
     /**
      * 接受任务
@@ -23,6 +25,8 @@ public interface Worker {
      * @param tasks
      */
     boolean accept(LemmingTask task);
+
+    boolean accept(List<LemmingTask> tasks);
 
     /**
      * 是否繁忙
@@ -47,9 +51,10 @@ public interface Worker {
      * 下岗
      */
     void laidOff();
-    
+
     boolean isLaidOff();
-    
+
     String name();
 
+    LemmingTask getTask(LemmingTask query);
 }

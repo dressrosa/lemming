@@ -32,18 +32,19 @@ public class LemmingServiceServerImpl implements LemmingServerService {
     }
 
     private void process(Context context, ExecuteResult result) {
-        context.getProcessor().submit(() -> {
+        context.submit(() -> {
             // 记录调用
             try {
                 Storage storage = SpiManager.defaultSpiExtender(Storage.class);
                 LemmingTask task = new LemmingTask();
                 task.setApp(result.getApp())
                         .setTaskId(result.getTaskId())
-                        .setGroup(result.getGroup());
+                        .setTaskGroup(result.getGroup());
                 storage.saveLog(task, result);
             } catch (Exception e) {
                 logger.error(e + "");
             }
+            return 1;
         });
     }
 }

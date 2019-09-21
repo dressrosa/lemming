@@ -23,6 +23,10 @@
             <artifactId>lemming-registry-zookeeper</artifactId>
         </dependency>
         <dependency>
+            <groupId>com.xiaoyu</groupId>
+            <artifactId>lemming-storage-mysql</artifactId>
+        </dependency>
+        <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-beans</artifactId>
             <version>4.2.5.RELEASE</version>

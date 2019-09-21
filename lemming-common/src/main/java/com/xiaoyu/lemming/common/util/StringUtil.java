@@ -5,6 +5,7 @@
 package com.xiaoyu.lemming.common.util;
 
 import java.io.UnsupportedEncodingException;
+import java.util.UUID;
 
 import org.apache.commons.lang3.StringUtils;
 
@@ -17,6 +18,10 @@ public class StringUtil extends StringUtils {
 
     private static final char SEPARATOR = '_';
     private static final String CHARSET_NAME = "UTF-8";
+
+    public static final String getUUID() {
+        return UUID.randomUUID().toString();
+    }
 
     /**
      * 转换为字节数组

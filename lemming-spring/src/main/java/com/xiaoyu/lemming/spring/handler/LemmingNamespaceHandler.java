@@ -8,6 +8,7 @@ import org.springframework.beans.factory.xml.NamespaceHandlerSupport;
 
 import com.xiaoyu.lemming.spring.config.LemmingContext;
 import com.xiaoyu.lemming.spring.config.LemmingRegistry;
+import com.xiaoyu.lemming.spring.config.LemmingStorage;
 import com.xiaoyu.lemming.spring.config.Task;
 
 /**
@@ -22,6 +23,7 @@ public class LemmingNamespaceHandler extends NamespaceHandlerSupport {
         this.registerBeanDefinitionParser("registry", new LemmingBeanDefinitionParser(LemmingRegistry.class));
         this.registerBeanDefinitionParser("task", new LemmingBeanDefinitionParser(Task.class));
         this.registerBeanDefinitionParser("context", new LemmingBeanDefinitionParser(LemmingContext.class));
+        this.registerBeanDefinitionParser("storage", new LemmingBeanDefinitionParser(LemmingStorage.class));
     }
 
 }

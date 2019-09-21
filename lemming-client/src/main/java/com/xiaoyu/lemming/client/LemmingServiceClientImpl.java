@@ -54,11 +54,11 @@ public class LemmingServiceClientImpl implements LemmingClientService {
     }
 
     private ExecuteResult process(Context context, LemmingTask task, LemmingTask req) throws Exception {
-        Future<ExecuteResult> future = context.getProcessor().submit(() -> {
+        Future<ExecuteResult> future = context.submit(() -> {
             ExecuteResult ret = new ExecuteResult();
             ret.setTaskId(req.getTaskId())
                     .setApp(req.getApp())
-                    .setGroup(req.getGroup())
+                    .setGroup(req.getTaskGroup())
                     .setTraceId(req.getTraceId());
             try {
                 Object proxy = task.getProxy();
@@ -106,7 +106,7 @@ public class LemmingServiceClientImpl implements LemmingClientService {
         }
         return new ExecuteResult().setTaskId(req.getTaskId())
                 .setApp(req.getApp())
-                .setGroup(req.getGroup())
+                .setGroup(req.getTaskGroup())
                 .setTraceId(req.getTraceId())
                 .setHost(NetUtil.localIP())
                 .setSuccess(true)
@@ -114,13 +114,14 @@ public class LemmingServiceClientImpl implements LemmingClientService {
     }
 
     private void doCallback(Context context, ExecuteResult result) {
-        context.getProcessor().submit(() -> {
+        context.submit(() -> {
             try {
                 Transporter transporter = SpiManager.defaultSpiExtender(Transporter.class);
                 transporter.callback(result);
             } catch (Exception e) {
                 logger.error(e + "");
             }
+            return 1;
         });
     }
 }

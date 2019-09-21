@@ -22,11 +22,20 @@
         </xsd:complexType>
     </xsd:element>
 
+    <xsd:element name="storage">
+        <xsd:complexType>
+            <xsd:attribute name="name" type="string" use="required" />
+            <xsd:attribute name="url" type="string" use="required" />
+            <xsd:attribute name="user" type="string" use="optional" default="" />
+            <xsd:attribute name="password" type="string" use="optional" default="" />
+        </xsd:complexType>
+    </xsd:element>
+
     <!--引用接口lemming-task -->
     <xsd:element name="task">
         <xsd:complexType>
             <xsd:attribute name="taskId" type="string" use="required" />
-            <xsd:attribute name="name" type="string" use="optional" default=""/>
+            <xsd:attribute name="name" type="string" use="optional" default="" />
             <xsd:attribute name="rule" type="string" use="optional" default="" />
             <xsd:attribute name="protocol" type="string" use="optional" default="" />
             <xsd:attribute name="taskImpl" type="string" use="required" />
