@@ -1,27 +1,24 @@
-<nav class="navbar navbar-inverse" role="navigation"
-    th:fragment="navigation">
+<nav class="navbar navbar-inverse" role="navigation" th:fragment="navigation" style="border-radius: 0px;">
     <div class="container-fluid">
         <div class="navbar-header">
             <a class="navbar-brand" href="#">任务平台</a>
         </div>
         <div id="myexample">
             <ul class="nav navbar-nav">
-                <li class="active"><a href="#">任务列表</a></li>
-              <!--   <li><a href="#">SVN</a></li> -->
-                <li class="dropdown"><a href="#"
-                    class="dropdown-toggle" data-toggle="dropdown">待开发
-                        <b class="caret"></b>
+                <li th:class="${#httpServletRequest.getRequestURI() == '/task/list'?'active':''}"><a href="../task/list">任务列表</a></li>
+                <li th:class="${#httpServletRequest.getRequestURI() == '/taskLog/list'?'dropdown active':''}"><a href="#" class="dropdown-toggle"
+                    data-toggle="dropdown">其他 <b class="caret"></b>
                 </a>
                     <ul class="dropdown-menu">
-                        <li><a id="action-1" href="#">1</a></li>
-                        <li><a href="#">2</a></li>
-                        <li><a href="#">3</a></li>
+                        <li><a id="action-1" class="active" href="../taskLog/list">任务日志</a></li>
+                        <!-- <li><a href="#">2</a></li>
                         <li class="divider"></li>
                         <li><a href="#">分离的链接</a></li>
                         <li class="divider"></li>
-                        <li><a href="#">另一个分离的链接</a></li>
+                        <li><a href="#">另一个分离的链接</a></li> -->
                     </ul></li>
             </ul>
         </div>
     </div>
+    <script type="text/javascript"></script>
 </nav>

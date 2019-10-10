@@ -16,6 +16,15 @@ public class LemmingTaskLog {
     private Integer state;
     private String message;
     private String traceId;
+    private String createDate;
+
+    public String getCreateDate() {
+        return createDate;
+    }
+
+    public void setCreateDate(String createDate) {
+        this.createDate = createDate;
+    }
 
     public String getTraceId() {
         return traceId;

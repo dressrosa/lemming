@@ -34,7 +34,7 @@
     <!-- <logger name="com.xiaoyu.modules.biz" level="DEBUG" additivity="false" /> -->
 
     <!-- 默认级别和输出 -->
-    <root level="info">
+    <root level="debug">
         <appender-ref ref="STDOUT" />
     </root>
 </configuration>

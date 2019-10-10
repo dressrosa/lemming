@@ -66,6 +66,24 @@
                 #{item}
             </foreach>
         </if>
+        order by id desc
+    </select>
+
+    <select id="queryTasksByIds" resultType="com.xiaoyu.lemming.core.api.LemmingTask"
+        parameterType="java.util.List">
+        select
+        <include refid="Base_Column_List" />
+        from biz_task as a
+        where
+        a.del_flag=0
+        <if test="list != null and list.size > 0">
+            and a.id in
+            <foreach collection="list" item="item" index="index" open="(" separator=","
+                close=")">
+                #{item}
+            </foreach>
+        </if>
+        limit 500
     </select>
 
     <insert id="insert" parameterType="com.xiaoyu.lemming.core.api.LemmingTask">
@@ -145,7 +163,6 @@
                 close="end)" separator="">
                 when #{item.id} then #{item.usable}
             </foreach>
-            ,
         </if>
         ,suspension =
         <if test="list[0].id != null">
@@ -153,7 +170,6 @@
                 close="end)" separator="">
                 when #{item.id} then #{item.suspension}
             </foreach>
-            ,
         </if>
         where del_flag = 0
         <if test="list[0].id != null">
@@ -217,6 +233,57 @@
                 #{item}
             </foreach>
         </if>
+    </select>
+
+    <!-- task log -->
+    <sql id="Base_Log_List">
+        a.task_id as taskId,
+        a.app as app,
+        a.host as host,
+        a.trace_id as traceId,
+        a.state as
+        state,
+        a.message as message,
+        a.create_date
+    </sql>
+
+    <select id="getLogs" resultType="com.xiaoyu.lemming.common.entity.LemmingTaskLog"
+        parameterType="com.xiaoyu.lemming.monitor.common.query.LemmingTaskQuery">
+        select
+        <include refid="Base_Log_List" />
+        from biz_task_log as a
+        where
+        a.del_flag=0
+        <if test="app != null and app !='' ">
+            and a.app = #{app}
+        </if>
+        <if test="taskId != null and taskId != '' ">
+            and a.task_id = #{taskId}
+        </if>
+        <if test="traceId != null and traceId != '' ">
+            and a.trace_id = #{traceId}
+        </if>
+        <if test="startCDate != null and startCDate != '' ">
+            and a.create_date &gt;= #{startCDate}
+        </if>
+        <if test="endCDate != null and endCDate != '' ">
+            and #{endCDate} &gt;= a.create_date
+        </if>
+        <if test="apps != null and apps.size > 0">
+            and a.app in
+            <foreach collection="apps" item="item" index="index" open="(" separator=","
+                close=")">
+                #{item}
+            </foreach>
+        </if>
+        <if test="taskIds != null and taskIds.size > 0">
+            and a.task_id in
+            <foreach collection="taskIds" item="item" index="index" open="(" separator=","
+                close=")">
+                #{item}
+            </foreach>
+        </if>
+        order by id desc
     </select>
 
 </mapper>

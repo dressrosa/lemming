@@ -1,5 +1,6 @@
 package com.xiaoyu.lemming.monitor.controller;
 
+import java.util.Arrays;
 import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
@@ -10,8 +11,10 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import com.xiaoyu.lemming.common.entity.LemmingTaskLog;
 import com.xiaoyu.lemming.core.api.LemmingTask;
 import com.xiaoyu.lemming.monitor.common.api.TaskService;
 import com.xiaoyu.lemming.monitor.common.entity.ResponseCode;
@@ -72,6 +75,26 @@ public class TaskController {
         return ResponseMapper.createMapper().resultJson();
     }
 
+    @RequestMapping(value = "api/v1/task/pause", method = RequestMethod.POST)
+    @ResponseBody
+    public String pause(HttpServletRequest request, @RequestParam(value = "ids[]") String[] ids) {
+        if (ids.length == 0) {
+            return ResponseMapper.createMapper()
+                    .code(ResponseCode.ARGS_ERROR.statusCode()).resultJson();
+        }
+        return this.taskService.pauseTasks(Arrays.asList(ids)).resultJson();
+    }
+
+    @RequestMapping(value = "api/v1/task/disable", method = RequestMethod.POST)
+    @ResponseBody
+    public String disable(HttpServletRequest request, @RequestParam(value = "ids[]") String[] ids) {
+        if (ids.length == 0) {
+            return ResponseMapper.createMapper()
+                    .code(ResponseCode.ARGS_ERROR.statusCode()).resultJson();
+        }
+        return this.taskService.disableTasks(Arrays.asList(ids)).resultJson();
+    }
+
     @RequestMapping(value = "api/v1/task/execute", method = RequestMethod.POST)
     @ResponseBody
     public String execute(HttpServletRequest request, LemmingTaskQuery query) {
@@ -80,8 +103,8 @@ public class TaskController {
                     .code(ResponseCode.ARGS_ERROR.statusCode())
                     .resultJson();
         }
-        this.taskService.execute(query);
-        return ResponseMapper.createMapper().resultJson();
+        ResponseMapper resp = this.taskService.execute(query);
+        return resp.resultJson();
     }
 
     @RequestMapping(value = "task/list")
@@ -121,4 +144,39 @@ public class TaskController {
         return "task/taskList::Task_Modal_Detail";
     }
 
+    @RequestMapping(value = "taskLog/list")
+    public String taskLog(Model model, HttpServletRequest request, HttpServletResponse response,
+            LemmingTaskQuery query) {
+        int pageNum = query.getPageNum();
+        int pageSize = query.getPageSize();
+        if (pageNum < 1) {
+            pageNum = 1;
+            query.setPageNum(pageNum);
+        }
+        if (pageSize > 100) {
+            pageSize = 100;
+            query.setPageSize(pageSize);
+        }
+        List<LemmingTaskLog> list = this.taskService.queryLogList(query);
+        model.addAttribute("logList", list);
+        model.addAttribute("pageNum", pageNum);
+        model.addAttribute("pageSize", pageSize);
+        model.addAttribute("isEndPage", list.size() < pageSize);
+        if (query.getTraceId() == null) {
+            return "task/logList";
+        }
+        return "task/logList::Log_List";
+    }
+
+    @RequestMapping(value = "taskLog/detail")
+    public String taskLogDetail(Model model, HttpServletRequest request, String taskId,
+            String app, String traceId) {
+        LemmingTaskQuery query = new LemmingTaskQuery();
+        query.setTaskId(taskId);
+        query.setTraceId(traceId);
+        query.setApp(app);
+        List<LemmingTaskLog> logs = this.taskService.queryLogList(query);
+        model.addAttribute("logDetails", logs);
+        return "task/logList::Log_Modal_Detail";
+    }
 }

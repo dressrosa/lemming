@@ -37,7 +37,12 @@
                     </caption>
                     <thead>
                         <tr>
-                            <th>名称</th>
+                            <th><i class="fa fa-play" onclick="pauseAll('')" style="color: #337ab7; cursor: pointer;">批量暂停</i></th>
+                        </tr>
+                    </thead>
+                    <thead>
+                        <tr>
+                            <th><input type="checkbox" value="" style="margin-right: 5px;" onclick="checkboxAll()" />名称</th>
                             <th>任务ID</th>
                             <th>所属组织</th>
                             <th>所属应用</th>
@@ -49,15 +54,32 @@
                     </thead>
                     <tbody>
                         <tr th:each="task:${taskList}">
-                            <td><dd th:text="${task.name}"></dd></td>
-                            <td><dd th:text="${task.taskId}"></dd></td>
-                            <td><dd th:text="${task.taskGroup}"></dd></td>
-                            <td><dd th:text="${task.app}"></dd></td>
-                            <td><dd th:text="${task.rule}"></dd></td>
-                            <td th:switch="${task.usable}"><dd th:case="0">否</dd>
-                                <dd th:case="1">是</dd></td>
-                            <td th:switch="${task.suspension}"><dd th:case="0">否</dd>
-                                <dd th:case="1">是</dd></td>
+                            <td class="checkbox_flex"><input type="checkbox" th:value="${task.id}" style="margin-right: 5px;" />
+                                <dd th:text="${task.name}" /></td>
+                            <td><dd th:text="${task.taskId}" /></td>
+                            <td><dd th:text="${task.taskGroup}" /></td>
+                            <td><dd th:text="${task.app}" /></td>
+                            <td><dd th:text="${task.rule}" /></td>
+                            <td th:switch="${task.usable}">
+                                <dd th:case="0">
+                                    <i class="fa fa-ban" title="点击可用" th:value="${task.id}" style="color: red; cursor: pointer;"
+                                        th:onclick="'javascript:disableAll(\''+${task.id}+'\')'" />
+                                </dd>
+                                <dd th:case="1">
+                                    <i class="fa fa-check-circle" title="点击停用" th:value="${task.id}" style="color: #1aaa55; cursor: pointer;"
+                                        th:onclick="'javascript:disableAll(\''+${task.id}+'\')'" />
+                                </dd>
+                            </td>
+                            <td th:switch="${task.suspension}">
+                                <dd th:case="0">
+                                    <i class="fa fa-pause" title="点击暂停" th:value="${task.id}" style="color: #1aaa55; cursor: pointer;"
+                                        th:onclick="'javascript:pauseAll(\''+${task.id}+'\')'" />
+                                </dd>
+                                <dd th:case="1">
+                                    <i class="fa  fa-play" title="点击开启" th:value="${task.id}" style="color: red; cursor: pointer;"
+                                        th:onclick="'javascript:pauseAll(\''+${task.id}+'\')'" />
+                                </dd>
+                            </td>
                             <td><dd>
                                     <button type="button" class="btn btn-link btn-sm" contenteditable="true"
                                         th:onclick="'javascript:showModal(\''+${task.app}+'\',\''+${task.taskId}+'\')'">详情</button>
@@ -79,6 +101,7 @@
             <div class="container">
                 <ul class="pager">
                     <li id="last_page"><a href="#" onclick="doSearch(-1)">上一页</a></li>
+                    <li><a id="currentPage">1</a></li>
                     <li id="next_page"><a href="#" onclick="doSearch(1)">下一页</a></li>
                 </ul>
             </div>
@@ -90,7 +113,7 @@
                 <div class="modal-content">
                     <div class="modal-header ">
                         <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-                        <h4 class="modal-title text-primary" id="myModalLabel">详情</h4>
+                        <h4 class="modal-title" id="myModalLabel">详情</h4>
                     </div>
                     <div class="modal-body" id="detail_modal_body">
                         <form class="form-horizontal text-muted" role="form" th:fragment="Task_Modal_Detail" th:if="${taskDetail != null}">
@@ -165,7 +188,7 @@
                 <div class="modal-content">
                     <div class="modal-header ">
                         <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-                        <h4 class="modal-title text-primary" id="myModalLabel">编辑</h4>
+                        <h4 class="modal-title" id="myModalLabel">编辑</h4>
                     </div>
                     <div class="modal-body" id="edit_modal_body">
                         <form id="edit_form" class="form-horizontal text-muted" role="form" th:fragment="Task_Modal_Edit"
@@ -196,7 +219,13 @@
                             <div class="form-group ">
                                 <label for="" class="col-sm-2 control-label">所属组织</label>
                                 <div class="col-sm-10">
-                                    <input type="input" name="taskGroup" class="form-control" th:value="${taskDetail.taskGroup}" />
+                                    <select name="callType" th:field="${taskDetail.taskGroup}" th:value="${taskDetail.taskGroup}"
+                                        class="form-control select2">
+                                        <option value="" style="color: #337ab7;">-- 请选择 --</option>
+                                        <option th:selected="${taskDetail.callType == '研发0部'}" value="研发0部">研发0部</option>
+                                        <option th:selected="${taskDetail.callType == '研发1部'}" value="研发1部">研发1部</option>
+                                        <option th:selected="${taskDetail.callType == '研发2部'}" value="研发2部">研发2部</option>
+                                    </select>
                                 </div>
                             </div>
                             <div class="form-group ">
@@ -222,7 +251,7 @@
                                 <div class="col-sm-10 ">
                                     <select name="callType" th:field="${taskDetail.callType}" th:value="${taskDetail.callType}"
                                         class="form-control select2">
-                                        <option value="">-- 请选择 --</option>
+                                        <option value="" style="color: #337ab7;">-- 请选择 --</option>
                                         <option th:selected="${taskDetail.callType == 0}" value="0">简单调用</option>
                                         <option th:selected="${taskDetail.callType == 1}" value="1">广播调用</option>
                                     </select>
@@ -312,7 +341,8 @@
                                 'taskId' : taskId
                             },
                             success : function(data) {
-                                showGlobalMessage("操作成功");
+                                let ret = jQuery.parseJSON(data);
+                                showGlobalMessage(ret.message);
                             }
                         })
                         isExecuting = false;
@@ -320,7 +350,7 @@
 
                     function showGlobalMessage(msg) {
                         new jBox('Notice', {
-                            color : 'green',
+                            color : 'blue',
                             animation : 'tada',
                             content : msg
                         });
@@ -367,6 +397,10 @@
                         } else {
                             num = parseInt($("#pageNum").val());
                         }
+                        if (num == 0) {
+                            num = 1;
+                        }
+
                         var url = '../task/list';
                         $.ajax({
                             url : url,
@@ -379,6 +413,7 @@
                             },
                             success : function(data) {
                                 let isEndPage = $("#isEndPage").val();
+                                $("#currentPage").html(num);
                                 if (isEndPage == 'true') {
                                     $("#next_page").addClass("disabled")
                                 } else {
@@ -387,6 +422,100 @@
                                 $("#task_table").html(data);
                             }
                         })
+                    }
+                    //checkbox 全选/取消全选
+                    var isCheckAll = false;
+                    function checkboxAll() {
+                        if (isCheckAll) {
+                            $("input[type='checkbox']").each(function() {
+                                this.checked = false;
+                            });
+                            isCheckAll = false;
+                        } else {
+                            $("input[type='checkbox']").each(function() {
+                                this.checked = true;
+                            });
+                            isCheckAll = true;
+                        }
+                    }
+                    var pauseRequest = false;
+                    function pauseAll(item) {
+                        if (pauseRequest) {
+                            return;
+                        }
+                        let ids = [];
+                        if (item == '') {
+                            $("input[type='checkbox']:checked").each(function() {
+                                ids.push($(this).val());
+                            });
+                        } else {
+                            ids.push(item);
+                        }
+                        if (ids.length == 0) {
+                            showGlobalMessage("请选择需要操作的记录");
+                            return;
+                        }
+                        pauseRequest = true;
+                        $.ajax({
+                            url : "../api/v1/task/pause",
+                            type : 'post',
+                            async : false,
+                            data : {
+                                'ids' : ids
+                            },
+                            success : function(data) {
+                                pauseRequest = false;
+                                let ret = jQuery.parseJSON(data);
+                                if (ret.code == 0) {
+                                    showGlobalMessage("操作成功");
+                                } else {
+                                    showGlobalMessage(ret.message);
+                                    return;
+                                }
+                                $('#search_btn').click();
+                            }
+                        })
+                        pauseRequest = false;
+                    }
+
+                    var disableRequest = false;
+                    function disableAll(item) {
+                        if (disableRequest) {
+                            return;
+                        }
+                        let ids = [];
+                        if (item == '') {
+                            $("input[type='checkbox']:checked").each(function() {
+                                ids.push($(this).val());
+                            });
+                        } else {
+                            ids.push(item);
+                        }
+                        if (ids.length == 0) {
+                            showGlobalMessage("请选择需要操作的记录");
+                            return;
+                        }
+                        disableRequest = true;
+                        $.ajax({
+                            url : "../api/v1/task/disable",
+                            type : 'post',
+                            async : false,
+                            data : {
+                                'ids' : ids
+                            },
+                            success : function(data) {
+                                disableRequest = false;
+                                let ret = jQuery.parseJSON(data);
+                                if (ret.code == 0) {
+                                    showGlobalMessage("操作成功");
+                                } else {
+                                    showGlobalMessage(ret.message);
+                                    return;
+                                }
+                                $('#search_btn').click();
+                            }
+                        })
+                        disableRequest = false;
                     }
                 </script>
 </body>

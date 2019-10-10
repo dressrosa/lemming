@@ -21,6 +21,35 @@ public class LemmingTaskQuery {
     private Integer pageNum;
     private Integer pageSize;
 
+    private String traceId;
+
+    private String startCDate;
+    private String endCDate;
+
+    public String getStartCDate() {
+        return startCDate;
+    }
+
+    public void setStartCDate(String startCDate) {
+        this.startCDate = startCDate;
+    }
+
+    public String getEndCDate() {
+        return endCDate;
+    }
+
+    public void setEndCDate(String endCDate) {
+        this.endCDate = endCDate;
+    }
+
+    public String getTraceId() {
+        return traceId;
+    }
+
+    public void setTraceId(String traceId) {
+        this.traceId = traceId;
+    }
+
     public String getName() {
         return name;
     }

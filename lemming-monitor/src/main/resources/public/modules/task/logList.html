@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<header th:replace="common/header :: common_header" />
+<style type="text/css">
+</style>
+</head>
+<body>
+    <div>
+        <navi th:replace="common/navigation :: navigation" />
+    </div>
+    <div class="main">
+        <div class="content">
+            <div class="form-group">
+                <form id="search_form" class="form-inline" role="form">
+                    <div class="form-group">
+                        <label class="" for="app">所属应用</label> <input type="text" class="form-control" id="query_app" name="query_app"
+                            placeholder="请输入名称" />
+                    </div>
+                    <div class="form-group">
+                        <label class="" for="app">任务ID</label> <input type="text" class="form-control" id="query_taskId" name="query_taskId"
+                            placeholder="请输入任务ID" />
+                    </div>
+                    <div class="form-group">
+                        <label class="" for="traceId">链路ID</label> <input type="text" class="form-control" id="query_traceId" name="query_traceId"
+                            placeholder="请输入链路ID" />
+                    </div>
+                    <div class="form-group" style="position: relative;">
+                        <label class="" for="createStartDate">执行时间</label> <input type="text" class="form-control" id="query_startCDate"
+                            name="query_startCDate" placeholder="开始时间" /> <label class="">－</label> <input type="text" class="form-control"
+                            id="query_endCDate" name="query_endCDate" placeholder="结束时间" />
+                    </div>
+                    <div class="form-group">
+                        <button id="search_btn" type="button" class="btn btn-default btn-primary">查询</button>
+                    </div>
+                </form>
+            </div>
+            <div class="table-responsive " id="task_table">
+                <table class="table table-hover table-striped" th:fragment="Log_List">
+                    <caption>
+                        <h3>日志列表</h3>
+                    </caption>
+                    <thead>
+                        <tr>
+                            <th>任务ID</th>
+                            <th>所属应用</th>
+                            <th>执行机器</th>
+                            <th>执行链路ID</th>
+                            <th>状态</th>
+                            <th>执行时间</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="log:${logList}">
+                            <td><dd th:text="${log.taskId}"></dd></td>
+                            <td><dd th:text="${log.app}"></dd></td>
+                            <td><dd th:text="${log.host}"></dd></td>
+                            <td><dd th:text="${log.traceId}"></dd></td>
+                            <td th:switch="${log.state}"><dd th:case="0">初始</dd>
+                                <dd th:case="1">成功</dd>
+                                <dd th:case="2">失败</dd></td>
+                            <td><dd th:text="${log.createDate}"></dd></td>
+                            <td><dd>
+                                    <button type="button" class="btn btn-link btn-sm" contenteditable="true"
+                                        th:onclick="'javascript:showModal(\''+${log.app}+'\',\''+${log.taskId}+'\',\''+${log.traceId}+'\')'">详情</button>
+                                </dd></td>
+                        </tr>
+                        <input type="hidden" id="pageNum" th:value="${pageNum}" />
+                        <input type="hidden" id="isEndPage" th:value="${isEndPage}" />
+                    </tbody>
+                </table>
+            </div>
+            <div class="container">
+                <ul class="pager">
+                    <li id="last_page"><a href="#" onclick="doSearch(-1)">上一页</a></li>
+                    <li><a id="currentPage">1</a></li>
+                    <li id="next_page"><a href="#" onclick="doSearch(1)">下一页</a></li>
+                </ul>
+            </div>
+        </div>
+        <footer th:replace="common/footer :: common_footer" />
+        <!-- 模态框（Modal） -->
+        <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header ">
+                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                        <h4 class="modal-title" id="myModalLabel">详情</h4>
+                    </div>
+                    <div class="modal-body" id="detail_modal_body">
+                        <form class="form-horizontal text-muted" role="form" th:fragment="Log_Modal_Detail" th:if="${logDetails != null}">
+                            <div th:each="logDetail:${logDetails}">
+                                <div class="form-group" style="border-bottom: 1px solid #ddd;">
+                                    <label class="col-sm-2 control-label">ID</label>
+                                    <div class="col-sm-10 ">
+                                        <p class="form-control-static" th:text="${logDetail.taskId}"></p>
+                                    </div>
+                                    <label class="col-sm-2 control-label">所属应用</label>
+                                    <div class="col-sm-10 ">
+                                        <p class="form-control-static" th:text="${logDetail.app}"></p>
+                                    </div>
+                                    <label class="col-sm-2 control-label">执行链路</label>
+                                    <div class="col-sm-10 ">
+                                        <p class="form-control-static" th:text="${logDetail.traceId}"></p>
+                                    </div>
+                                    <label class="col-sm-2 control-label">执行机器</label>
+                                    <div class="col-sm-10 ">
+                                        <p class="form-control-static" th:text="${logDetail.host}"></p>
+                                    </div>
+                                    <label class="col-sm-2 control-label">状态</label>
+                                    <div class="col-sm-10 " th:switch="${logDetail.state}">
+                                        <p class="form-control-static" th:case="0">初始</p>
+                                        <p class="form-control-static" th:case="1">成功</p>
+                                        <p class="form-control-static" th:case="2">失败</p>
+                                    </div>
+                                    <label class="col-sm-2 control-label">执行信息</label>
+                                    <div class="col-sm-10 ">
+                                        <p class="form-control-static" th:text="${logDetail.message}"></p>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+                    </div>
+                </div>
+                <!-- /.modal-content -->
+            </div>
+            <!-- /.modal -->
+        </div>
+        <!-- 模态框（Modal） -->
+    </div>
+    <script type="text/javascript" th:inline="javascript">
+                    $(function() {
+                        $("#query_startCDate").datetimepicker({
+                            format : 'YYYY-MM-DD HH:mm:ss',
+                            locale : moment.locale('zh-cn')
+                        });
+                        $("#query_endCDate").datetimepicker({
+                            format : 'YYYY-MM-DD HH:mm:ss',
+                            locale : moment.locale('zh-cn')
+                        });
+                    });
+
+                    function showModal(app, taskId, traceId) {
+                        $('#myModal').on('show.bs.modal', function() {
+                            $.ajax({
+                                url : "../taskLog/detail",
+                                type : 'get',
+                                data : {
+                                    'app' : app,
+                                    'taskId' : taskId,
+                                    'traceId' : traceId
+                                },
+                                success : function(data) {
+                                    $("#detail_modal_body").html(data);
+                                }
+                            })
+                        })
+                        $('#myModal').modal({});
+                    }
+
+                    function showGlobalMessage(msg) {
+                        new jBox('Notice', {
+                            color : 'green',
+                            animation : 'tada',
+                            content : msg
+                        });
+                    }
+                    function showMessage(msg) {
+                        $("#alert_message").html(msg);
+                        $("#alert_message_box").css("display", '');
+                    }
+                    $('#search_btn').click(function() {
+                        doSearch(0);
+                    });
+                    function doSearch(param) {
+                        let isEndPage = $("#isEndPage").val();
+                        if (isEndPage == 'true') {
+                            if (param > 0) {
+                                return;
+                            }
+                        }
+                        let num = 1;
+                        if (param != 0) {
+                            num = parseInt($("#pageNum").val()) + param;
+                        } else {
+                            num = parseInt($("#pageNum").val());
+                        }
+                        if (num == 0) {
+                            num = 1;
+                        }
+                        var url = '../taskLog/list';
+                        $.ajax({
+                            url : url,
+                            type : 'get',
+                            data : {
+                                'app' : $("#query_app").val(),
+                                'taskId' : $("#query_taskId").val(),
+                                'traceId' : $("#query_traceId").val(),
+                                'startCDate' : $("#query_startCDate").val(),
+                                'endCDate' : $("#query_endCDate").val(),
+                                'pageNum' : num,
+                            },
+                            success : function(data) {
+                                let isEndPage = $("#isEndPage").val();
+                                $("#currentPage").html(num);
+                                if (isEndPage == 'true') {
+                                    $("#next_page").addClass("disabled")
+                                } else {
+                                    $("#next_page").removeClass("disabled")
+                                }
+                                $("#task_table").html(data);
+                            }
+                        })
+                    }
+                </script>
+</body>
+</html>
