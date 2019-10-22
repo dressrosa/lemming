@@ -44,6 +44,10 @@
         </dependency>
         <dependency>
             <groupId>com.xiaoyu</groupId>
+            <artifactId>lemming-transport-dubbo</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.xiaoyu</groupId>
             <artifactId>lemming-spring</artifactId>
         </dependency>
 

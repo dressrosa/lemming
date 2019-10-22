@@ -3,12 +3,16 @@
  */
 package com.xiaoyu.lemming.common.entity;
 
+import java.io.Serializable;
+
 /**
  * @author hongyu
  * @date 2019-09
  * @description
  */
-public class LemmingTaskClient {
+public class LemmingTaskClient implements Serializable {
+
+    private static final long serialVersionUID = -3203697335106058866L;
 
     private long id;
     private String app;

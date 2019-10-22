@@ -44,8 +44,7 @@
                         <tr>
                             <th><input type="checkbox" value="" style="margin-right: 5px;" onclick="checkboxAll()" />名称</th>
                             <th>任务ID</th>
-                            <th>所属组织</th>
-                            <th>所属应用</th>
+                            <th>归属信息</th>
                             <th>执行规则</th>
                             <th>可用</th>
                             <th>暂停</th>
@@ -56,9 +55,10 @@
                         <tr th:each="task:${taskList}">
                             <td class="checkbox_flex"><input type="checkbox" th:value="${task.id}" style="margin-right: 5px;" />
                                 <dd th:text="${task.name}" /></td>
-                            <td><dd th:text="${task.taskId}" /></td>
-                            <td><dd th:text="${task.taskGroup}" /></td>
-                            <td><dd th:text="${task.app}" /></td>
+                            <td><dd class="btn btn-link btn-sm" th:text="${task.taskId}"
+                                    th:onclick="'javascript:showModal(\''+${task.app}+'\',\''+${task.taskId}+'\')'" /></td>
+                            <td><dd th:text="${'组别:'+task.taskGroup}" />
+                                <dd th:text="${'应用:'+task.app}" /></td>
                             <td><dd th:text="${task.rule}" /></td>
                             <td th:switch="${task.usable}">
                                 <dd th:case="0">
@@ -81,10 +81,6 @@
                                 </dd>
                             </td>
                             <td><dd>
-                                    <button type="button" class="btn btn-link btn-sm" contenteditable="true"
-                                        th:onclick="'javascript:showModal(\''+${task.app}+'\',\''+${task.taskId}+'\')'">详情</button>
-                                </dd>
-                                <dd>
                                     <button type="button" class="btn btn-link btn-sm" contenteditable="true"
                                         th:onclick="'javascript:showEditModal(\''+${task.app}+'\',\''+${task.taskId}+'\')'">修改</button>
                                 </dd>
@@ -118,15 +114,15 @@
                     <div class="modal-body" id="detail_modal_body">
                         <form class="form-horizontal text-muted" role="form" th:fragment="Task_Modal_Detail" th:if="${taskDetail != null}">
                             <div class="form-group" style="border-bottom: 1px solid #ddd;">
-                                <label class="col-sm-2 control-label">名称</label>
+                                <label class="col-sm-2 control-label">任务名称</label>
                                 <div class="col-sm-10">
                                     <p class="form-control-static" th:text="${taskDetail.name}"></p>
                                 </div>
-                                <label class="col-sm-2 control-label">ID</label>
+                                <label class="col-sm-2 control-label">任务ID</label>
                                 <div class="col-sm-10 ">
                                     <p class="form-control-static" th:text="${taskDetail.taskId}"></p>
                                 </div>
-                                <label class="col-sm-2 control-label">所属组织</label>
+                                <label class="col-sm-2 control-label">所属组别</label>
                                 <div class="col-sm-10 ">
                                     <p class="form-control-static" th:text="${taskDetail.taskGroup}"></p>
                                 </div>
@@ -217,7 +213,7 @@
                                 </div>
                             </div>
                             <div class="form-group ">
-                                <label for="" class="col-sm-2 control-label">所属组织</label>
+                                <label for="" class="col-sm-2 control-label">所属组别</label>
                                 <div class="col-sm-10">
                                     <select name="callType" th:field="${taskDetail.taskGroup}" th:value="${taskDetail.taskGroup}"
                                         class="form-control select2">

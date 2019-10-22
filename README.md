@@ -9,14 +9,18 @@ task的意思是我有个任务,希望别人来完成这个任务,一般任务�
 5. 调用结束后回调结果给server.
 
 ### Client:
-1.client初始化的所有task,并指定了任务的实现用于Server去调用(调度不保证唯一性,如果需要严格的唯一性,任务的业务逻辑需要处理.)初始化的任务都没有group,必须在monitor进行指定group并启用.
+1.client初始化的所有task,并指定了任务的实现用于Server去调用(调度不保证唯一性,如果需要严格的唯一性,任务的业务逻辑需要处理.)初始化的任务都没有group,必须在monitor进行指定group并启用.group与worker对应,group过多会导致woker过多.
 ### Server:
 1.server启动时会初始化所有的zk的数据到db,并监听所有新上的client信息.
+### Transporter:
+传输层主要指定client和server端信息交互的方式,目前支持rpc:beacon和dubbo,负载均衡等特点依赖于指定的传输框架.
 ### Registry:
 注册中心暂时只支持zookeeper,由client进行任务注册,Server进行监听获取.
 ### Monitor:
 monitor属于web项目,可单独使用.可以由其对所有任务进行查看和管理,但是同时monitor本身也是一个Server.  
-每个任务都必须先指定组别并启用.监控中心可以对Storage中的任务进行修改.可以观察每个任务的执行情况.(可以手动增加worker来减轻当前所有worker的压力[待考虑]).  
+每个任务都必须先指定group并启用.监控中心可以对Storage中的任务进行修改.可以观察每个任务的执行情况.(可以手动增加worker来减轻当前所有worker的压力[待考虑]).  
 目前只是实现简单的管理功能.
 ![monitor](https://dressrosa.github.io/resources/lemming/lemming_monitor_01.png)
 
+### 使用:
+详见lemming-examples

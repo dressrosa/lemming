@@ -94,7 +94,7 @@ public class ServerContext implements Context {
             // 暴露公共service
             trans.export();
         } catch (Exception e) {
-            logger.error(e + "");
+            logger.error("", e);
         }
     }
 

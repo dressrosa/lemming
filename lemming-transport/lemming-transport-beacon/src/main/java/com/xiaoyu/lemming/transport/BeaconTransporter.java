@@ -40,7 +40,7 @@ public class BeaconTransporter extends AbstractTransporter {
                     new Object[] { result },
                     new Class<?>[] { ExecuteResult.class });
         } catch (Exception e) {
-            logger.error(" Task[" + result.getTaskId() + "] Callback task client failed:" + e);
+            logger.error(" Task[" + result.getTaskId() + "] Callback task client failed:", e);
             throw e;
         }
         return;
@@ -86,7 +86,7 @@ public class BeaconTransporter extends AbstractTransporter {
             }
             return ret;
         } catch (Exception e) {
-            logger.error(" Task[" + task.getTaskId() + "] Call task client failed:" + e);
+            logger.error(" Task[" + task.getTaskId() + "] Call task client failed:", e);
             throw e;
         }
     }

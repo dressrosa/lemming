@@ -35,7 +35,7 @@ public class LemmingSpringContextListener implements ApplicationListener<Applica
 
     private static final Logger LOG = LoggerFactory.getLogger(LemmingSpringContextListener.class);
 
-    private ApplicationContext springContext;
+    private static ApplicationContext springContext;
 
     private String app;
     private String transport;
@@ -70,7 +70,7 @@ public class LemmingSpringContextListener implements ApplicationListener<Applica
                 Context context = SpiManager.defaultSpiExtender(Context.class);
                 context.close();
             } catch (Exception e) {
-                LOG.error("" + e);
+                LOG.error("", e);
             }
         }
     }
@@ -78,9 +78,10 @@ public class LemmingSpringContextListener implements ApplicationListener<Applica
     private void doStartContext() {
         try {
             Context context = SpiManager.defaultSpiExtender(Context.class);
+            context.initTransporter(transport);
             context.start();
         } catch (Exception e) {
-            LOG.error("" + e);
+            LOG.error("", e);
         }
     }
 
@@ -141,7 +142,11 @@ public class LemmingSpringContextListener implements ApplicationListener<Applica
 
     @Override
     public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
-        this.springContext = applicationContext;
+        springContext = applicationContext;
+    }
+
+    public static ApplicationContext getSpringContext() {
+        return springContext;
     }
 
 }

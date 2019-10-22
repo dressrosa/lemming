@@ -182,7 +182,7 @@ public class LemmingWorker implements Worker {
                     this.doHandleBroadcast(task);
                 }
             } catch (Exception e) {
-                logger.error("" + e);
+                logger.error("", e);
             } finally {
                 task.setRunning(false);
             }
@@ -207,14 +207,14 @@ public class LemmingWorker implements Worker {
             Storage storage = SpiManager.defaultSpiExtender(Storage.class);
             storage.saveLog(task, callRet);
         } catch (Exception e) {
-            logger.error(" Call task[" + task.getTaskId() + "] failed:" + e);
+            logger.error(" Call task[" + task.getTaskId() + "] failed:", e);
             try {
                 // 记录调用失败次数
                 Storage storage = SpiManager.defaultSpiExtender(Storage.class);
                 storage.saveLog(task, new ExecuteResult().setTraceId(traceId)
                         .setMessage(e.getMessage()));
             } catch (Exception e2) {
-                logger.error("" + e2);
+                logger.error("", e2);
             }
         }
     }
@@ -233,14 +233,14 @@ public class LemmingWorker implements Worker {
                 Storage storage = SpiManager.defaultSpiExtender(Storage.class);
                 storage.saveLog(task, callRet);
             } catch (Exception e) {
-                logger.error(" Call task[" + task.getTaskId() + "] failed:" + e);
+                logger.error(" Call task[" + task.getTaskId() + "] failed:", e);
                 try {
                     // 记录调用失败次数
                     Storage storage = SpiManager.defaultSpiExtender(Storage.class);
                     storage.saveLog(task, new ExecuteResult().setTraceId(traceId)
                             .setMessage(e.getMessage()));
                 } catch (Exception e2) {
-                    logger.error("" + e2);
+                    logger.error("", e2);
                 }
             }
         }
@@ -341,7 +341,7 @@ public class LemmingWorker implements Worker {
             Context context = SpiManager.defaultSpiExtender(Context.class);
             return context.getActiveTaskCount() > 0 ? true : false;
         } catch (Exception e1) {
-            logger.error("" + e1);
+            logger.error("", e1);
         }
         return false;
 

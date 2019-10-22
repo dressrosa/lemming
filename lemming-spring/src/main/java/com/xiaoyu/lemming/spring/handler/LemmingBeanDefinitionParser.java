@@ -96,10 +96,9 @@ public class LemmingBeanDefinitionParser extends AbstractSimpleBeanDefinitionPar
         }
 
         try {
-            //放在contextlistener里面启动
-            Context context = SpiManager.holder(Context.class).target(name);
-            context.initTransporter(transport);
-            
+            // 放在contextlistener里面启动
+            SpiManager.holder(Context.class).target(name);
+
             // 监听spring
             this.doRegisterLemmingListenerEvent(parserContext, app, transport);
         } catch (Exception e) {

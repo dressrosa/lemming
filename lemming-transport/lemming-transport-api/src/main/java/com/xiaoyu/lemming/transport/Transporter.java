@@ -15,14 +15,6 @@ import com.xiaoyu.lemming.core.api.LemmingTask;
 public interface Transporter {
 
     /**
-     * client调用server
-     * 
-     * @param result
-     * @throws Exception
-     */
-    void callback(ExecuteResult result) throws Exception;
-
-    /**
      * server调用client
      * 
      * @param task
@@ -31,6 +23,14 @@ public interface Transporter {
      * @throws Exception
      */
     ExecuteResult call(LemmingTask task, LemmingTaskClient client) throws Exception;
+
+    /**
+     * client调用server
+     * 
+     * @param result
+     * @throws Exception
+     */
+    void callback(ExecuteResult result) throws Exception;
 
     /**
      * server暴露给client回调接口

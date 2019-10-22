@@ -15,7 +15,7 @@ import org.springframework.web.servlet.config.annotation.EnableWebMvc;
  */
 @SpringBootApplication
 @EnableWebMvc
-@ImportResource("classpath:beacon.xml")
+@ImportResource("classpath:dubbo.xml")
 public class LemmingMonitorApplication {
 
     public static void main(String args[]) {

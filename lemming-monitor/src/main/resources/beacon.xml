@@ -11,5 +11,5 @@
 
     <beacon:registry address="127.0.0.1:2181" protocol="zookeeper" />
 
-    <import resource="classpath:lemming-server.xml" />
+    <import resource="classpath:lemming-server-beacon.xml" />
 </beans>

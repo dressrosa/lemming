@@ -11,6 +11,8 @@
     <modules>
         <module>lemming-server-test</module>
         <module>lemming-client-test</module>
+        <module>lemming-client-dubbo</module>
+        <module>lemming-server-dubbo</module>
     </modules>
     <artifactId>lemming-examples</artifactId>
     <dependencies>

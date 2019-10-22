@@ -4,30 +4,26 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>com.xiaoyu</groupId>
-        <artifactId>lemming-transport</artifactId>
+        <artifactId>lemming-examples</artifactId>
         <version>0.0.1-SNAPSHOT</version>
     </parent>
-    <artifactId>lemming-transport-dubbo</artifactId>
-    <properties>
-        <dubbo.version>2.7.3</dubbo.version>
-    </properties>
+    <artifactId>lemming-server-dubbo</artifactId>
+
     <dependencies>
         <dependency>
             <groupId>com.xiaoyu</groupId>
-            <artifactId>lemming-transport-api</artifactId>
+            <artifactId>lemming-schedule</artifactId>
         </dependency>
         <dependency>
             <groupId>com.xiaoyu</groupId>
             <artifactId>lemming-spring</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.xiaoyu</groupId>
-            <artifactId>lemming-common</artifactId>
+            <groupId>commons-logging</groupId>
+            <artifactId>commons-logging</artifactId>
+            <version>1.2</version>
         </dependency>
-        <dependency>
-            <groupId>com.xiaoyu</groupId>
-            <artifactId>lemming-core</artifactId>
-        </dependency>
+
 
         <dependency>
             <groupId>com.alibaba</groupId>
@@ -44,18 +40,5 @@
                 </exclusion>
             </exclusions>
         </dependency>
-
-        <dependency>
-            <groupId>org.apache.curator</groupId>
-            <artifactId>curator-framework</artifactId>
-            <version>2.8.0</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.curator</groupId>
-            <artifactId>curator-recipes</artifactId>
-            <version>2.8.0</version>
-        </dependency>
-
-
     </dependencies>
 </project>

@@ -8,6 +8,9 @@
         <version>0.0.1-SNAPSHOT</version>
     </parent>
     <artifactId>lemming-spring</artifactId>
+    <properties>
+        <springVersion>4.3.16.RELEASE</springVersion>
+    </properties>
     <dependencies>
         <dependency>
             <groupId>com.xiaoyu</groupId>
@@ -29,7 +32,7 @@
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-beans</artifactId>
-            <version>4.2.5.RELEASE</version>
+            <version>${springVersion}</version>
             <exclusions>
                 <exclusion>
                     <groupId>commons-logging</groupId>
@@ -40,12 +43,12 @@
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-web</artifactId>
-            <version>4.2.5.RELEASE</version>
+            <version>${springVersion}</version>
         </dependency>
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-context</artifactId>
-            <version>4.2.5.RELEASE</version>
+            <version>${springVersion}</version>
         </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>

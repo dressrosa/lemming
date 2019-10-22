@@ -14,14 +14,16 @@ import com.xiaoyu.lemming.core.api.LemmingTask;
  */
 public abstract class AbstractTransporter implements Transporter {
 
-    @Override
-    public void callback(ExecuteResult result) throws Exception {
-        // do nothing
-    }
+    protected static final int Timeout = 60_000;
 
     @Override
     public ExecuteResult call(LemmingTask task, LemmingTaskClient client) throws Exception {
         return doCall(task, client);
+    }
+
+    @Override
+    public void callback(ExecuteResult result) throws Exception {
+        // do nothing
     }
 
     @Override
