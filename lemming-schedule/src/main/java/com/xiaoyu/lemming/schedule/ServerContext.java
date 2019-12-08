@@ -1,3 +1,6 @@
+/**
+ * 唯有读书,不慵不扰
+ */
 package com.xiaoyu.lemming.schedule;
 
 import java.util.concurrent.Callable;
@@ -20,7 +23,7 @@ import com.xiaoyu.lemming.registry.Registry;
 import com.xiaoyu.lemming.transport.Transporter;
 
 /**
- * @author hongyu
+ * @author xiaoyu
  * @date 2019-04
  * @description
  */

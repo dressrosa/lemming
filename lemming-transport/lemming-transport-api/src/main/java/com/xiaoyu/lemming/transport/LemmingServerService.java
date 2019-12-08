@@ -8,7 +8,7 @@ import com.xiaoyu.lemming.common.entity.ExecuteResult;
 /**
  * 通用rpc service
  * 
- * @author hongyu
+ * @author xiaoyu
  * @date 2019-04
  * @description
  */

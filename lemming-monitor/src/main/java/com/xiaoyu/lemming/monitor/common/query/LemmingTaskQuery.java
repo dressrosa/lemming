@@ -3,7 +3,7 @@ package com.xiaoyu.lemming.monitor.common.query;
 import java.util.List;
 
 /**
- * @author hongyu
+ * @author xiaoyu
  * @param
  * @date 2019-05
  * @description
@@ -25,6 +25,16 @@ public class LemmingTaskQuery {
 
     private String startCDate;
     private String endCDate;
+
+    private String executionHost;
+
+    public String getExecutionHost() {
+        return executionHost;
+    }
+
+    public void setExecutionHost(String executionHost) {
+        this.executionHost = executionHost;
+    }
 
     public String getStartCDate() {
         return startCDate;

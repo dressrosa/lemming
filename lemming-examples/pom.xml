@@ -13,6 +13,8 @@
         <module>lemming-client-test</module>
         <module>lemming-client-dubbo</module>
         <module>lemming-server-dubbo</module>
+        <module>lemming-client-http</module>
+        <module>lemming-server-http</module>
     </modules>
     <artifactId>lemming-examples</artifactId>
     <dependencies>

@@ -7,7 +7,7 @@ package com.xiaoyu.lemming.registry;
 import com.xiaoyu.lemming.core.api.LemmingTask;
 
 /**
- * @author hongyu
+ * @author xiaoyu
  * @date 2019-03
  * @description
  */

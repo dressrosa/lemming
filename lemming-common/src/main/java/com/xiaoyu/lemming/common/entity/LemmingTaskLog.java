@@ -4,7 +4,7 @@
 package com.xiaoyu.lemming.common.entity;
 
 /**
- * @author hongyu
+ * @author xiaoyu
  * @date 2019-05
  * @description
  */
@@ -12,7 +12,8 @@ public class LemmingTaskLog {
 
     private String app;
     private String taskId;
-    private String host;
+    private String executionHost;
+    private String dispatchHost;
     private Integer state;
     private String message;
     private String traceId;
@@ -35,12 +36,21 @@ public class LemmingTaskLog {
         return this;
     }
 
-    public String getHost() {
-        return host;
+    public String getExecutionHost() {
+        return executionHost;
     }
 
-    public LemmingTaskLog setHost(String host) {
-        this.host = host;
+    public LemmingTaskLog setExecutionHost(String executionHost) {
+        this.executionHost = executionHost;
+        return this;
+    }
+
+    public String getDispatchHost() {
+        return dispatchHost;
+    }
+
+    public LemmingTaskLog setDispatchHost(String dispatchHost) {
+        this.dispatchHost = dispatchHost;
         return this;
     }
 

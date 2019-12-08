@@ -20,6 +20,8 @@ public interface LemmingTaskMapper {
 
     int batchInsert(List<LemmingTask> list);
 
+    int batchUpdate(List<LemmingTask> list);
+
     List<LemmingTask> getUpdatedTasks(@Param("updateDate") String updateDate);
 
     int insertLog(LemmingTaskLog taskLog);
@@ -29,6 +31,8 @@ public interface LemmingTaskMapper {
     List<LemmingTaskClient> getTaskClients(LemmingTaskClientQuery taskClientQuery);
 
     int batchDeleteTaskClients(List<LemmingTaskClient> deleteClientList);
-    
+
+    int batchUpdateTaskClients(List<LemmingTaskClient> updateClientList);
+
     long count(LemmingTaskQuery query);
 }

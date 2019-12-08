@@ -8,7 +8,7 @@ import java.io.Serializable;
 /**
  * 执行结果
  * 
- * @author hongyu
+ * @author xiaoyu
  * @date 2019-05
  * @description
  */
@@ -17,7 +17,8 @@ public class ExecuteResult implements Serializable {
     private static final long serialVersionUID = 1L;
     private boolean isSuccess;
     private String message = "";
-    private String host;
+    private String dispatchHost;
+    private String executionHost;
 
     private String taskId;
     private String app;
@@ -42,10 +43,6 @@ public class ExecuteResult implements Serializable {
         return this;
     }
 
-    public String getHost() {
-        return host;
-    }
-
     public String getApp() {
         return app;
     }
@@ -64,8 +61,21 @@ public class ExecuteResult implements Serializable {
         return this;
     }
 
-    public ExecuteResult setHost(String host) {
-        this.host = host;
+    public String getDispatchHost() {
+        return dispatchHost;
+    }
+
+    public ExecuteResult setDispatchHost(String dispatchHost) {
+        this.dispatchHost = dispatchHost;
+        return this;
+    }
+
+    public String getExecutionHost() {
+        return executionHost;
+    }
+
+    public ExecuteResult setExecutionHost(String executionHost) {
+        this.executionHost = executionHost;
         return this;
     }
 

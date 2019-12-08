@@ -9,7 +9,7 @@ import com.xiaoyu.lemming.core.api.LemmingTask;
 /**
  * 通用rpc service
  * 
- * @author hongyu
+ * @author xiaoyu
  * @date 2019-04
  * @description
  */

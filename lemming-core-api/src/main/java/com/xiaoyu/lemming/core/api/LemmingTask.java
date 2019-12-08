@@ -6,7 +6,7 @@ import java.util.List;
 import com.xiaoyu.lemming.common.entity.LemmingTaskClient;
 
 /**
- * @author hongyu
+ * @author xiaoyu
  * @param
  * @date 2019-03
  * @description
@@ -35,7 +35,7 @@ public class LemmingTask implements Task {
     // 任务所属应用
     private String app;
     // 执行参数
-    private Object[] params;
+    private String params;
     // 执行规则
     private String rule;
     // 协议 rpc or http
@@ -59,8 +59,11 @@ public class LemmingTask implements Task {
     // 是否暂停
     private Integer suspension;
 
-    // 机器ip
-    private String host;
+    // 执行机器ip
+    private String executionHost;
+
+    // 调度机器ip
+    private String dispatchHost;
 
     private List<LemmingTaskClient> clients = new LinkedList<>();
 
@@ -100,12 +103,21 @@ public class LemmingTask implements Task {
         return this;
     }
 
-    public String getHost() {
-        return host;
+    public String getExecutionHost() {
+        return executionHost;
     }
 
-    public LemmingTask setHost(String host) {
-        this.host = host;
+    public LemmingTask setExecutionHost(String executionHost) {
+        this.executionHost = executionHost;
+        return this;
+    }
+
+    public String getDispatchHost() {
+        return dispatchHost;
+    }
+
+    public LemmingTask setDispatchHost(String dispatchHost) {
+        this.dispatchHost = dispatchHost;
         return this;
     }
 
@@ -263,11 +275,11 @@ public class LemmingTask implements Task {
     public LemmingTask() {
     }
 
-    public Object[] getParams() {
+    public String getParams() {
         return params;
     }
 
-    public LemmingTask setParams(Object[] params) {
+    public LemmingTask setParams(String params) {
         this.params = params;
         return this;
     }
@@ -321,7 +333,7 @@ public class LemmingTask implements Task {
                 .append("&transport=").append(this.getTransport())
                 .append("&usable=").append(this.getUsable() == null ? 0 : this.getUsable())
                 .append("&suspension=").append(this.getSuspension() == null ? 0 : this.getSuspension())
-                .append("&host=").append(this.getHost())
+                .append("&host=").append(this.getExecutionHost())
                 .append("&callType=").append(this.getCallType() == null ? 0 : this.getCallType())
                 .append("&side=").append(this.getSide());
         return builder.toString();
@@ -352,7 +364,7 @@ public class LemmingTask implements Task {
             } else if (str.startsWith("suspension")) {
                 t.setSuspension(Integer.valueOf(str.substring(11)));
             } else if (str.startsWith("host")) {
-                t.setHost(str.substring(5));
+                t.setExecutionHost(str.substring(5));
             } else if (str.startsWith("callType")) {
                 t.setCallType(Integer.valueOf(str.substring(9)));
             } else if (str.startsWith("side")) {
@@ -360,5 +372,25 @@ public class LemmingTask implements Task {
             }
         }
         return t;
+    }
+
+    /**
+     * 返回一个简易的task镜像
+     * 
+     */
+    public LemmingTask portable() {
+        LemmingTask copy = new LemmingTask();
+        copy.setApp(app)
+                .setCallType(callType)
+                .setDelayTime(delayTime)
+                .setName(name)
+                .setParams(params)
+                .setSync(sync)
+                .setTaskGroup(taskGroup)
+                .setTaskId(taskId)
+                .setTaskImpl(taskImpl)
+                .setTransport(transport)
+                .setClients(clients);
+        return copy;
     }
 }

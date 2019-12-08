@@ -37,5 +37,6 @@
         <module>lemming-transport-api</module>
         <module>lemming-transport-dubbo</module>
         <module>lemming-transport-beacon</module>
+        <module>lemming-transport-http</module>
     </modules>
 </project>

@@ -43,7 +43,7 @@ import java.util.Objects;
 import java.util.ServiceConfigurationError;
 
 /**
- * @author hongyu
+ * @author xiaoyu
  * @date 2018-05
  * @description 取之于java.util.ServiceLoader,这里复制重写,对parseLine和iterator方法进行稍微改造来适应特定的需要
  * @param <S>

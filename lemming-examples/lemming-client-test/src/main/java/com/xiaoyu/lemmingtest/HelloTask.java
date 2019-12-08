@@ -4,6 +4,7 @@ import java.util.concurrent.TimeUnit;
 
 import org.springframework.stereotype.Component;
 
+import com.xiaoyu.lemming.common.entity.LemmingParam;
 import com.xiaoyu.lemming.core.schedule.LemmingTaskWrapper;
 
 @Component
@@ -12,7 +13,7 @@ public class HelloTask extends LemmingTaskWrapper {
     private static final long serialVersionUID = 1L;
 
     @Override
-    public void handle() {
+    public void handle(LemmingParam lemmingParam) {
         try {
             TimeUnit.MILLISECONDS.sleep(10);
         } catch (InterruptedException e) {

@@ -3,7 +3,7 @@ package com.xiaoyu.lemming.storage.mysql.query;
 import java.util.List;
 
 /**
- * @author hongyu
+ * @author xiaoyu
  * @param
  * @date 2019-09
  * @description
@@ -14,6 +14,24 @@ public class LemmingTaskClientQuery {
     private String app;
     private List<String> taskIds;
     private List<String> apps;
+    private List<String> executionHosts;
+    private Integer delFlag;
+
+    public Integer getDelFlag() {
+        return delFlag;
+    }
+
+    public void setDelFlag(Integer delFlag) {
+        this.delFlag = delFlag;
+    }
+
+    public List<String> getExecutionHosts() {
+        return executionHosts;
+    }
+
+    public void setExecutionHosts(List<String> executionHosts) {
+        this.executionHosts = executionHosts;
+    }
 
     public String getTaskId() {
         return taskId;

@@ -31,4 +31,8 @@ public interface LemmingTaskMapper {
 
     int batchUpdate(List<LemmingTask> list);
 
+    int delete(LemmingTask query);
+
+    int batchUpdateTaskClients(List<LemmingTaskClient> list);
+
 }

@@ -3,7 +3,7 @@ package com.xiaoyu.lemming.storage.mysql.query;
 import java.util.List;
 
 /**
- * @author hongyu
+ * @author xiaoyu
  * @param
  * @date 2019-05
  * @description

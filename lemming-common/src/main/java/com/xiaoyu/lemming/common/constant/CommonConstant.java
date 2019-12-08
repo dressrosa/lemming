@@ -4,7 +4,7 @@
 package com.xiaoyu.lemming.common.constant;
 
 /**
- * @author hongyu
+ * @author xiaoyu
  * @date 2019-04
  * @description
  */

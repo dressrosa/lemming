@@ -1,7 +1,7 @@
 package com.xiaoyu.lemming.monitor.common.entity;
 
 /**
- * @author hongyu
+ * @author xiaoyu
  * @date 2018-01
  * @description 请求返回码
  */

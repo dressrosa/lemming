@@ -19,7 +19,7 @@ import sun.misc.Unsafe;
  * 删除时:遍历节点,对需要删除节点的前驱节点进行占用,然后对
  * 需删除的节点进行占用,占用后进行删除,失败着循环尝试.
  * 
- * @author hongyu
+ * @author xiaoyu
  * @param <T>
  * @date 2019-08
  * @description
@@ -52,7 +52,7 @@ public class CycleList<T> implements Collection<T> {
     /**
      * 链表的节点
      * 
-     * @author hongyu
+     * @author xiaoyu
      * @date 2019-08
      * @description
      *              occupy代表节点被占用,其他线程无法操作

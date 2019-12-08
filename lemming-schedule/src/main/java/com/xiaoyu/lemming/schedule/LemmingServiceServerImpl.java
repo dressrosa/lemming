@@ -1,5 +1,5 @@
 /**
- * 
+ * 唯有读书,不慵不扰
  */
 package com.xiaoyu.lemming.schedule;
 
@@ -16,7 +16,7 @@ import com.xiaoyu.lemming.transport.LemmingServerService;
 /**
  * 这个需要在启动时,就暴露成rpc/http接口.
  * 
- * @author hongyu
+ * @author xiaoyu
  * @date 2019-04
  * @description
  */

@@ -9,17 +9,16 @@ import org.springframework.context.annotation.ImportResource;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 
 /**
- * @author hongyu
+ * @author xiaoyu
  * @date 2019-05
  * @description
  */
 @SpringBootApplication
 @EnableWebMvc
-@ImportResource("classpath:dubbo.xml")
+@ImportResource("classpath:http.xml")
 public class LemmingMonitorApplication {
 
     public static void main(String args[]) {
         SpringApplication.run(LemmingMonitorApplication.class, args);
     }
-
 }

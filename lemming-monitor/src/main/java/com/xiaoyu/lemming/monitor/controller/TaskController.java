@@ -23,7 +23,7 @@ import com.xiaoyu.lemming.monitor.common.query.LemmingTaskQuery;
 import com.xiaoyu.ribbon.core.StringUtil;
 
 /**
- * @author hongyu
+ * @author xiaoyu
  * @date 2019-05
  * @description
  */
@@ -107,6 +107,17 @@ public class TaskController {
         return resp.resultJson();
     }
 
+    @RequestMapping(value = "api/v1/task/remove", method = RequestMethod.POST)
+    @ResponseBody
+    public String remove(HttpServletRequest request, LemmingTaskQuery query) {
+        if (StringUtil.isBlank(query.getApp()) || StringUtil.isBlank(query.getTaskId())) {
+            return ResponseMapper.createMapper()
+                    .code(ResponseCode.ARGS_ERROR.statusCode())
+                    .resultJson();
+        }
+        return this.taskService.remove(query).resultJson();
+    }
+
     @RequestMapping(value = "task/list")
     public String list(Model model, HttpServletRequest request, HttpServletResponse response, LemmingTaskQuery query) {
         int pageNum = query.getPageNum();
@@ -142,6 +153,17 @@ public class TaskController {
             return "task/taskList::Task_Modal_Edit";
         }
         return "task/taskList::Task_Modal_Detail";
+    }
+
+    @RequestMapping(value = "task/clients")
+    public String taskClients(Model model, HttpServletRequest request, String taskId,
+            String app) {
+        LemmingTaskQuery query = new LemmingTaskQuery();
+        query.setTaskId(taskId);
+        query.setApp(app);
+        LemmingTask task = this.taskService.queryDetail(query);
+        model.addAttribute("taskDetail", task);
+        return "task/taskList::Task_Clients_Modal";
     }
 
     @RequestMapping(value = "taskLog/list")

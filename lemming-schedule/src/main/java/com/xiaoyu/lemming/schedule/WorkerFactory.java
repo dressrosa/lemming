@@ -1,5 +1,5 @@
 /**
- * 
+ * 唯有读书,不慵不扰
  */
 package com.xiaoyu.lemming.schedule;
 
@@ -18,7 +18,7 @@ import com.xiaoyu.lemming.core.api.Worker;
 /**
  * worker工厂
  * 
- * @author hongyu
+ * @author xiaoyu
  * @date 2019-03
  * @description
  */

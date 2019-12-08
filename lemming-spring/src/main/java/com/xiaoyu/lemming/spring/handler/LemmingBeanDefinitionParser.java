@@ -33,7 +33,7 @@ import com.xiaoyu.lemming.spring.listener.LemmingSpringContextListener;
 import com.xiaoyu.lemming.storage.Storage;
 
 /**
- * @author hongyu
+ * @author xiaoyu
  * @date 2019-04
  * @description 解析xml
  */
@@ -91,7 +91,8 @@ public class LemmingBeanDefinitionParser extends AbstractSimpleBeanDefinitionPar
         if (StringUtil.isBlank(app)) {
             throw new Exception(" App cannot be null in xml tag->" + element.getTagName());
         }
-        if (!"beacon".equals(transport) && !"dubbo".equals(transport)) {
+        if (!"beacon".equals(transport) && !"dubbo".equals(transport)
+                && !"http".equals(transport)) {
             throw new Exception(" Transport is invalid in xml tag->" + element.getTagName());
         }
 
@@ -172,7 +173,7 @@ public class LemmingBeanDefinitionParser extends AbstractSimpleBeanDefinitionPar
                     .setTaskImpl(taskImpl)
                     .setRule(rule == null ? "" : rule)
                     .setParams(null)
-                    .setHost(NetUtil.localIP())// TODO
+                    .setExecutionHost(NetUtil.localIP())// TODO
                     .setCallType(0)
                     .setSide("client");
             taskSet.add(task);

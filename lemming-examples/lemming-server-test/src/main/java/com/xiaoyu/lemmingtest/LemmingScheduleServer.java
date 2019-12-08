@@ -8,7 +8,7 @@ import java.util.concurrent.CountDownLatch;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 
 /**
- * @author hongyu
+ * @author xiaoyu
  * @date 2018-08
  * @description
  */

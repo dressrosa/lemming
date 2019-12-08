@@ -11,7 +11,7 @@ import java.util.concurrent.ConcurrentMap;
 /**
  * 存储所有扩展的类
  * 
- * @author hongyu
+ * @author xiaoyu
  * @date 2018-02
  * @description
  */

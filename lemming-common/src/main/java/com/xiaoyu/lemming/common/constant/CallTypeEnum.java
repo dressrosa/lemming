@@ -4,7 +4,7 @@
 package com.xiaoyu.lemming.common.constant;
 
 /**
- * @author hongyu
+ * @author xiaoyu
  * @date 2019-09
  * @description
  */
@@ -17,5 +17,10 @@ public enum CallTypeEnum {
     /**
      * 广播调用
      */
-    Broadcast;
+    Broadcast,
+
+    /**
+     * 分片调用
+     */
+    Sharding;
 }

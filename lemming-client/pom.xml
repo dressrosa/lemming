@@ -35,6 +35,10 @@
         </dependency>
         <dependency>
             <groupId>com.xiaoyu</groupId>
+            <artifactId>lemming-transport-http</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.xiaoyu</groupId>
             <artifactId>lemming-spring</artifactId>
         </dependency>
     </dependencies>

@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:lemming="http://www.iwouldbe.com/schema/lemming"
+    xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+    http://www.iwouldbe.com/schema/lemming http://www.iwouldbe.com/schema/lemming.xsd">
+
+    <lemming:context name="server" transport="http"
+        app="wechat" />
+
+    <lemming:registry address="127.0.0.1:2181"
+        protocol="zookeeper" />
+
+    <lemming:storage name="mysql"
+        url="jdbc:mysql://127.0.0.1:3306/lemming" user="root"
+        password="12345678" />
+
+</beans>

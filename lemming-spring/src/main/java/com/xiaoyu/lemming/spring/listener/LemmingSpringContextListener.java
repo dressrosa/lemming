@@ -26,7 +26,7 @@ import com.xiaoyu.lemming.registry.Registry;
 import com.xiaoyu.lemming.spring.handler.LemmingBeanDefinitionParser;
 
 /**
- * @author hongyu
+ * @author xiaoyu
  * @date 2019-04
  * @description spring监听事件,对spring启动完成和结束进行监听
  */

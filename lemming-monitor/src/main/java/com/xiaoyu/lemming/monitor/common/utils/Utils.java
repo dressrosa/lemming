@@ -6,7 +6,7 @@ import com.xiaoyu.ribbon.core.StringUtil;
 
 
 /**
- * @author hongyu
+ * @author xiaoyu
  * @date 2018-08
  * @description
  */

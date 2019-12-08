@@ -11,7 +11,7 @@ import java.util.concurrent.ConcurrentMap;
 /**
  * 相当于concurrentMap
  * 
- * @author hongyu
+ * @author xiaoyu
  * @date 2018-05
  * @description
  */

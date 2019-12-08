@@ -6,7 +6,7 @@ package com.xiaoyu.lemmingtest;
 /**
  * for beacon
  * 
- * @author hongyu
+ * @author xiaoyu
  * @date 2018-08
  * @description
  */

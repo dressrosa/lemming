@@ -6,7 +6,7 @@ import com.xiaoyu.lemming.common.entity.ExecuteResult;
 import com.xiaoyu.lemming.core.api.LemmingTask;
 
 /**
- * @author hongyu
+ * @author xiaoyu
  * @date 2019-03
  * @description
  */
@@ -17,12 +17,6 @@ public interface Storage {
     void insert(LemmingTask task);
 
     int batchSave(List<LemmingTask> tasks);
-
-    LemmingTask fetch();
-
-    List<LemmingTask> fetchTasks();
-
-    int insertLog(String taskId, String msg, boolean isError);
 
     List<LemmingTask> fetchAllTasks();
 

@@ -18,7 +18,7 @@ import com.xiaoyu.lemming.core.api.Context;
 import com.xiaoyu.lemming.core.api.LemmingTask;
 
 /**
- * @author hongyu
+ * @author xiaoyu
  * @date 2019-03
  * @description
  */
@@ -71,9 +71,7 @@ public class BeaconTransporter extends AbstractTransporter {
         ref.setInterfaceName(CommonConstant.Lemming_Client_Service);
         ref.setGroup(CommonConstant.Lemming_Group);
         ref.setTimeout(Timeout + "");
-        if (client != null) {
-            ref.setHost(client.getHost());
-        }
+        ref.setHost(client.getExecutionHost());
         try {
             GenericService generic = GenericRequestLauncher.launch(ref);
             ExecuteResult ret = generic.$_$invoke(CommonConstant.Task_Call_Method, ExecuteResult.class,

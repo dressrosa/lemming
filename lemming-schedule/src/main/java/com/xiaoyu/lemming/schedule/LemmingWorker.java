@@ -1,5 +1,5 @@
 /**
- * 
+ * 唯有读书,不慵不扰
  */
 package com.xiaoyu.lemming.schedule;
 
@@ -10,7 +10,6 @@ import java.util.List;
 import java.util.WeakHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -22,11 +21,13 @@ import com.cronutils.model.CronType;
 import com.cronutils.model.definition.CronDefinitionBuilder;
 import com.cronutils.model.time.ExecutionTime;
 import com.cronutils.parser.CronParser;
+import com.xiaoyu.lemming.cluster.LoadBalance;
 import com.xiaoyu.lemming.common.constant.CallTypeEnum;
 import com.xiaoyu.lemming.common.entity.ExecuteResult;
 import com.xiaoyu.lemming.common.entity.LemmingTaskClient;
 import com.xiaoyu.lemming.common.extension.SpiManager;
 import com.xiaoyu.lemming.common.util.CycleList;
+import com.xiaoyu.lemming.common.util.NetUtil;
 import com.xiaoyu.lemming.common.util.StringUtil;
 import com.xiaoyu.lemming.core.api.Context;
 import com.xiaoyu.lemming.core.api.LemmingTask;
@@ -35,7 +36,7 @@ import com.xiaoyu.lemming.storage.Storage;
 import com.xiaoyu.lemming.transport.Transporter;
 
 /**
- * @author hongyu
+ * @author xiaoyu
  * @date 2019-03
  * @description
  */
@@ -57,12 +58,8 @@ public class LemmingWorker implements Worker {
     /**
      * 用于检测任务是否需要运行
      */
-    private ScheduledExecutorService Run_Monitor = Executors.newSingleThreadScheduledExecutor(new ThreadFactory() {
-        @Override
-        public Thread newThread(Runnable r) {
-            return new Thread(r, "Run_Monitor");
-        }
-    });
+    private ScheduledExecutorService Run_Monitor = Executors
+            .newSingleThreadScheduledExecutor(r -> new Thread(r, "Run_Monitor"));
 
     /**
      * 用于存放任务
@@ -176,11 +173,8 @@ public class LemmingWorker implements Worker {
         Context context = SpiManager.defaultSpiExtender(Context.class);
         context.submit(() -> {
             try {
-                if (task.getCallType() == CallTypeEnum.Simple.ordinal()) {
-                    this.doHandleSimple(task);
-                } else if (task.getCallType() == CallTypeEnum.Broadcast.ordinal()) {
-                    this.doHandleBroadcast(task);
-                }
+                LemmingTask portable = task.portable();
+                handlePortable(portable);
             } catch (Exception e) {
                 logger.error("", e);
             } finally {
@@ -197,12 +191,25 @@ public class LemmingWorker implements Worker {
         // }
     }
 
+    private void handlePortable(LemmingTask portable) throws Exception {
+        portable.setDispatchHost(NetUtil.localIP());
+        if (portable.getCallType() == CallTypeEnum.Simple.ordinal()) {
+            this.doHandleSimple(portable);
+        } else if (portable.getCallType() == CallTypeEnum.Broadcast.ordinal()) {
+            this.doHandleBroadcast(portable);
+        } else if (portable.getCallType() == CallTypeEnum.Sharding.ordinal()) {
+            this.doHandleSharding(portable);
+        }
+    }
+
     private void doHandleSimple(LemmingTask task) throws Exception {
         Transporter transporter = SpiManager.defaultSpiExtender(Transporter.class);
         String traceId = StringUtil.getUUID();
         task.setTraceId(traceId);
+        LoadBalance loadBalance = SpiManager.defaultSpiExtender(LoadBalance.class);
+        LemmingTaskClient c = loadBalance.select(task.getClients());
         try {
-            ExecuteResult callRet = transporter.call(task, null);
+            ExecuteResult callRet = transporter.call(task, c);
             // 记录调用
             Storage storage = SpiManager.defaultSpiExtender(Storage.class);
             storage.saveLog(task, callRet);
@@ -211,8 +218,11 @@ public class LemmingWorker implements Worker {
             try {
                 // 记录调用失败次数
                 Storage storage = SpiManager.defaultSpiExtender(Storage.class);
-                storage.saveLog(task, new ExecuteResult().setTraceId(traceId)
-                        .setMessage(e.getMessage()));
+                storage.saveLog(task, new ExecuteResult()
+                        .setTraceId(traceId)
+                        .setMessage(e.getMessage())
+                        .setDispatchHost(task.getDispatchHost())
+                        .setExecutionHost(c.getExecutionHost()));
             } catch (Exception e2) {
                 logger.error("", e2);
             }
@@ -237,8 +247,44 @@ public class LemmingWorker implements Worker {
                 try {
                     // 记录调用失败次数
                     Storage storage = SpiManager.defaultSpiExtender(Storage.class);
-                    storage.saveLog(task, new ExecuteResult().setTraceId(traceId)
-                            .setMessage(e.getMessage()));
+                    storage.saveLog(task, new ExecuteResult()
+                            .setTraceId(traceId)
+                            .setMessage(e.getMessage())
+                            .setDispatchHost(task.getDispatchHost())
+                            .setExecutionHost(c.getExecutionHost()));
+                } catch (Exception e2) {
+                    logger.error("", e2);
+                }
+            }
+        }
+    }
+
+    private void doHandleSharding(LemmingTask task) throws Exception {
+        Transporter transporter = SpiManager.defaultSpiExtender(Transporter.class);
+        List<LemmingTaskClient> clients = task.getClients();
+        String traceId = "";
+        for (LemmingTaskClient c : clients) {
+            try {
+                traceId = StringUtil.getUUID();
+                task.setTraceId(traceId);
+                // 有分片参数
+                if (StringUtil.isNotBlank(c.getParams())) {
+                    task.setParams(c.getParams());
+                }
+                ExecuteResult callRet = transporter.call(task, c);
+                // 记录调用
+                Storage storage = SpiManager.defaultSpiExtender(Storage.class);
+                storage.saveLog(task, callRet);
+            } catch (Exception e) {
+                logger.error(" Call task[" + task.getTaskId() + "] failed:", e);
+                try {
+                    // 记录调用失败次数
+                    Storage storage = SpiManager.defaultSpiExtender(Storage.class);
+                    storage.saveLog(task, new ExecuteResult()
+                            .setTraceId(traceId)
+                            .setMessage(e.getMessage())
+                            .setDispatchHost(task.getDispatchHost())
+                            .setExecutionHost(c.getExecutionHost()));
                 } catch (Exception e2) {
                     logger.error("", e2);
                 }
@@ -270,12 +316,20 @@ public class LemmingWorker implements Worker {
                     t.setRule(task.getRule());
                     changed = true;
                 }
+                if (!t.getParams().equals(task.getParams())) {
+                    t.setParams(task.getParams());
+                    changed = true;
+                }
                 if (t.getSuspension() != task.getSuspension()) {
                     t.setSuspension(task.getSuspension());
                     changed = true;
                 }
                 if (t.getCallType() != task.getCallType()) {
                     t.setCallType(task.getCallType());
+                    changed = true;
+                }
+                if (task.getClients() != null) {
+                    t.setClients(task.getClients());
                     changed = true;
                 }
                 if (!changed) {

@@ -11,7 +11,7 @@ import com.xiaoyu.lemming.monitor.common.entity.ResponseMapper;
 import com.xiaoyu.lemming.monitor.common.query.LemmingTaskQuery;
 
 /**
- * @author hongyu
+ * @author xiaoyu
  * @date 2019-05
  * @description
  */
@@ -30,5 +30,7 @@ public interface TaskService {
     ResponseMapper pauseTasks(List<String> idList);
 
     ResponseMapper disableTasks(List<String> idList);
+
+    ResponseMapper remove(LemmingTaskQuery query);
 
 }

@@ -4,6 +4,12 @@
 <header th:replace="common/header :: common_header" />
 <style type="text/css">
 </style>
+<title>task</title>
+<style type="text/css">
+a {
+	cursor: pointer;
+}
+</style>
 </head>
 <body>
     <div>
@@ -14,16 +20,13 @@
             <div class="form-group">
                 <form id="search_form" class="form-inline" role="form" action="../task/list" method="post">
                     <div class="form-group">
-                        <label class="" for="app">所属应用</label> <input type="text" class="form-control" id="query_app" name="query_app"
-                            placeholder="请输入名称" />
+                        <label class="" for="app">所属应用</label> <input type="text" class="form-control" id="query_app" name="query_app" placeholder="请输入名称" />
                     </div>
                     <div class="form-group">
-                        <label class="" for="name">名称</label> <input type="text" class="form-control" id="query_name" name="query_name"
-                            placeholder="请输入名称" />
+                        <label class="" for="name">名称</label> <input type="text" class="form-control" id="query_name" name="query_name" placeholder="请输入名称" />
                     </div>
                     <div class="form-group">
-                        <label class="" for="app">任务ID</label> <input type="text" class="form-control" id="query_taskId" name="query_taskId"
-                            placeholder="请输入任务ID" />
+                        <label class="" for="app">任务ID</label> <input type="text" class="form-control" id="query_taskId" name="query_taskId" placeholder="请输入任务ID" />
                     </div>
                     <div class="form-group">
                         <button id="search_btn" type="button" class="btn btn-default btn-primary">查询</button>
@@ -37,7 +40,7 @@
                     </caption>
                     <thead>
                         <tr>
-                            <th><i class="fa fa-play" onclick="pauseAll('')" style="color: #337ab7; cursor: pointer;">批量暂停</i></th>
+                            <th><i class="fa fa-play" onclick="pauseAll('')" style="color: #337ab7; cursor: pointer;">批量暂停/开启</i></th>
                         </tr>
                     </thead>
                     <thead>
@@ -46,6 +49,7 @@
                             <th>任务ID</th>
                             <th>归属信息</th>
                             <th>执行规则</th>
+                            <th>连接机器</th>
                             <th>可用</th>
                             <th>暂停</th>
                             <th>操作</th>
@@ -55,39 +59,44 @@
                         <tr th:each="task:${taskList}">
                             <td class="checkbox_flex"><input type="checkbox" th:value="${task.id}" style="margin-right: 5px;" />
                                 <dd th:text="${task.name}" /></td>
-                            <td><dd class="btn btn-link btn-sm" th:text="${task.taskId}"
-                                    th:onclick="'javascript:showModal(\''+${task.app}+'\',\''+${task.taskId}+'\')'" /></td>
-                            <td><dd th:text="${'组别:'+task.taskGroup}" />
-                                <dd th:text="${'应用:'+task.app}" /></td>
-                            <td><dd th:text="${task.rule}" /></td>
+                            <td><a th:text="${task.taskId}" th:onclick="'javascript:showDetailModal(\''+${task.app}+'\',\''+${task.taskId}+'\')'"></a></td>
+                            <td>
+                                <dd th:text="${'组别:'+task.taskGroup}" />
+                                <dd th:text="${'应用:'+task.app}" />
+                            </td>
+                            <td>
+                                <dd th:text="${task.rule}" />
+                            </td>
+                            <td><a th:text="${task.clients.size()}" th:onclick="'javascript:showClientsModal(\''+${task.app}+'\',\''+${task.taskId}+'\')'" /></td>
                             <td th:switch="${task.usable}">
                                 <dd th:case="0">
-                                    <i class="fa fa-ban" title="点击可用" th:value="${task.id}" style="color: red; cursor: pointer;"
-                                        th:onclick="'javascript:disableAll(\''+${task.id}+'\')'" />
+                                    <i class="fa fa-ban" title="点击可用" th:value="${task.id}" style="color: red; cursor: pointer;" th:onclick="'javascript:disableAll(\''+${task.id}+'\')'" />
                                 </dd>
                                 <dd th:case="1">
-                                    <i class="fa fa-check-circle" title="点击停用" th:value="${task.id}" style="color: #1aaa55; cursor: pointer;"
-                                        th:onclick="'javascript:disableAll(\''+${task.id}+'\')'" />
+                                    <i class="fa fa-check-circle" title="点击停用" th:value="${task.id}" style="color: #1aaa55; cursor: pointer;" th:onclick="'javascript:disableAll(\''+${task.id}+'\')'" />
                                 </dd>
                             </td>
                             <td th:switch="${task.suspension}">
                                 <dd th:case="0">
-                                    <i class="fa fa-pause" title="点击暂停" th:value="${task.id}" style="color: #1aaa55; cursor: pointer;"
-                                        th:onclick="'javascript:pauseAll(\''+${task.id}+'\')'" />
+                                    <i class="fa fa-pause" title="点击暂停" th:value="${task.id}" style="color: #1aaa55; cursor: pointer;" th:onclick="'javascript:pauseAll(\''+${task.id}+'\')'" />
                                 </dd>
                                 <dd th:case="1">
-                                    <i class="fa  fa-play" title="点击开启" th:value="${task.id}" style="color: red; cursor: pointer;"
-                                        th:onclick="'javascript:pauseAll(\''+${task.id}+'\')'" />
+                                    <i class="fa  fa-play" title="点击开启" th:value="${task.id}" style="color: red; cursor: pointer;" th:onclick="'javascript:pauseAll(\''+${task.id}+'\')'" />
                                 </dd>
                             </td>
-                            <td><dd>
-                                    <button type="button" class="btn btn-link btn-sm" contenteditable="true"
-                                        th:onclick="'javascript:showEditModal(\''+${task.app}+'\',\''+${task.taskId}+'\')'">修改</button>
+                            <td>
+                                <dd>
+                                    <a class="btn btn-link btn-sm" th:onclick="'javascript:showEditModal(\''+${task.app}+'\',\''+${task.taskId}+'\')'">修改</a>
                                 </dd>
                                 <dd>
-                                    <button type="button" class="btn btn-link btn-sm" contenteditable="true"
-                                        th:onclick="'javascript:doExecuteNow(\''+${task.app}+'\',\''+${task.taskId}+'\')'">立即执行</button>
-                                </dd></td>
+                                    <a class="btn btn-link btn-sm" th:onclick="'javascript:showConfirmModal(\''+${task.app}+'\',\''+${task.taskId}+'\',\''+'是否立即执行'+'\',\''+'doConfirmExecuteNow'+'\')'">立即执行</a>
+                                </dd>
+                                <dd>
+                                    <a class="btn btn-link btn-sm"
+                                        th:onclick="'javascript:showConfirmModal(\''+${task.app}+'\',\''+${task.taskId}+'\',\''+'是否删除此任务'+'\',\''+'doConfirmRemoveTask'+'\')'"
+                                    >删除</a>
+                                </dd>
+                            </td>
                         </tr>
                         <input type="hidden" id="pageNum" th:value="${pageNum}" />
                         <input type="hidden" id="isEndPage" th:value="${isEndPage}" />
@@ -113,7 +122,7 @@
                     </div>
                     <div class="modal-body" id="detail_modal_body">
                         <form class="form-horizontal text-muted" role="form" th:fragment="Task_Modal_Detail" th:if="${taskDetail != null}">
-                            <div class="form-group" style="border-bottom: 1px solid #ddd;">
+                            <div class="form-group" style="border-top: 1px solid #ddd;">
                                 <label class="col-sm-2 control-label">任务名称</label>
                                 <div class="col-sm-10">
                                     <p class="form-control-static" th:text="${taskDetail.name}"></p>
@@ -131,7 +140,7 @@
                                     <p class="form-control-static" th:text="${taskDetail.app}"></p>
                                 </div>
                             </div>
-                            <div class="form-group " style="border-bottom: 1px solid #ddd;">
+                            <div class="form-group " style="border-top: 1px solid #ddd;">
                                 <label class="col-sm-2 control-label">任务实现</label>
                                 <div class="col-sm-10 ">
                                     <p class="form-control-static" th:text="${taskDetail.taskImpl}"></p>
@@ -146,8 +155,9 @@
                                 </div>
                                 <label class="col-sm-2 control-label">调用类型</label>
                                 <div class="col-sm-10 " th:switch="${taskDetail.callType}">
-                                    <p class="form-control-static" th:case="0">简单调用</p>
+                                    <p class="form-control-static" th:case="0">随机调用</p>
                                     <p class="form-control-static" th:case="1">广播调用</p>
+                                    <p class="form-control-static" th:case="2">分片调用</p>
                                 </div>
                                 <label class="col-sm-2 control-label">是否可用</label>
                                 <div class="col-sm-10 " th:switch="${taskDetail.usable}">
@@ -158,14 +168,6 @@
                                 <div class="col-sm-10 " th:switch="${taskDetail.suspension}">
                                     <p class="form-control-static" th:case="0">否</p>
                                     <p class="form-control-static" th:case="1">是</p>
-                                </div>
-                            </div>
-                            <div class="form-group">
-                                <label class="col-sm-2 control-label">连接机器</label>
-                                <div class="col-sm-10 ">
-                                    <tr th:each="client:${taskDetail.clients}">
-                                        <td><dd th:text="${client.host}"></dd></td>
-                                    </tr>
                                 </div>
                             </div>
                         </form>
@@ -179,6 +181,35 @@
             <!-- /.modal -->
         </div>
         <!-- 模态框（Modal） -->
+        <div class="modal fade" id="myClientsModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header ">
+                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                        <h4 class="modal-title">机器</h4>
+                    </div>
+                    <div class="modal-body" id="clients_modal_body">
+                        <form class="form-horizontal text-muted" role="form" th:fragment="Task_Clients_Modal" th:if="${taskDetail != null}">
+                            <div class="form-group">
+                                <label th:if="${taskDetail.clients.size() == 0}">暂无可用机器</label>
+                                <div class="col-sm-10 " th:each="client:${taskDetail.clients}">
+                                    <label th:text="${'地址:'+client.executionHost}"> </label> <label th:text="${' 参数:'+client.params}"> </label> <label> <a class="btn btn-link btn-sm"
+                                        th:onclick="'javascript:doExecuteNow(\''+${taskDetail.app}+'\',\''+${taskDetail.taskId}+'\',\''+${client.executionHost}+'\')'"
+                                    >触发一次</a></label>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+                    </div>
+                </div>
+                <!-- /.modal-content -->
+            </div>
+            <!-- /.modal -->
+        </div>
+        <!--  modal end-->
+        <!-- 模态框（Modal） -->
         <div class="modal fade" id="myEditModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
             <div class="modal-dialog">
                 <div class="modal-content">
@@ -187,8 +218,7 @@
                         <h4 class="modal-title" id="myModalLabel">编辑</h4>
                     </div>
                     <div class="modal-body" id="edit_modal_body">
-                        <form id="edit_form" class="form-horizontal text-muted" role="form" th:fragment="Task_Modal_Edit"
-                            th:if="${taskDetail != null}">
+                        <form id="edit_form" class="form-horizontal text-muted" role="form" th:fragment="Task_Modal_Edit" th:if="${taskDetail != null}">
                             <div class="alert alert-warning form-group" id="alert_message_box" style="display: none;">
                                 <!--   <a href="#" class="" data-dismiss="alert"> &times;</a> -->
                                 <p id="alert_message"></p>
@@ -215,8 +245,7 @@
                             <div class="form-group ">
                                 <label for="" class="col-sm-2 control-label">所属组别</label>
                                 <div class="col-sm-10">
-                                    <select name="callType" th:field="${taskDetail.taskGroup}" th:value="${taskDetail.taskGroup}"
-                                        class="form-control select2">
+                                    <select name="callType" th:field="${taskDetail.taskGroup}" th:value="${taskDetail.taskGroup}" class="form-control select2">
                                         <option value="" style="color: #337ab7;">-- 请选择 --</option>
                                         <option th:selected="${taskDetail.callType == '研发0部'}" value="研发0部">研发0部</option>
                                         <option th:selected="${taskDetail.callType == '研发1部'}" value="研发1部">研发1部</option>
@@ -243,21 +272,9 @@
                                 </div>
                             </div>
                             <div class="form-group ">
-                                <label for="" class="col-sm-2 control-label">调用类型</label>
-                                <div class="col-sm-10 ">
-                                    <select name="callType" th:field="${taskDetail.callType}" th:value="${taskDetail.callType}"
-                                        class="form-control select2">
-                                        <option value="" style="color: #337ab7;">-- 请选择 --</option>
-                                        <option th:selected="${taskDetail.callType == 0}" value="0">简单调用</option>
-                                        <option th:selected="${taskDetail.callType == 1}" value="1">广播调用</option>
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="form-group ">
                                 <label for="" class="col-sm-2 control-label">是否暂停</label>
                                 <div class="col-sm-10 ">
-                                    <select name="suspension" th:field="${taskDetail.suspension}" th:value="${taskDetail.suspension}"
-                                        class="form-control select2">
+                                    <select name="suspension" th:field="${taskDetail.suspension}" th:value="${taskDetail.suspension}" class="form-control select2">
                                         <option value="">-- 请选择 --</option>
                                         <option th:selected="${taskDetail.suspension == 0}" value="0">否</option>
                                         <option th:selected="${taskDetail.suspension == 1}" value="1">是</option>
@@ -274,6 +291,25 @@
                                     </select>
                                 </div>
                             </div>
+                            <div class="form-group ">
+                                <label for="" class="col-sm-2 control-label">调用类型<i class=" fa fa-question-circle-o fa-1x"></i></label>
+                                <div class="col-sm-10 ">
+                                    <select name="callType" id="callTypeSelect" th:field="${taskDetail.callType}" th:value="${taskDetail.callType}" class="form-control select2 ">
+                                        <option value="" style="color: #337ab7;">-- 请选择 --</option>
+                                        <option th:selected="${taskDetail.callType == 0}" value="0">随机调用</option>
+                                        <option th:selected="${taskDetail.callType == 1}" value="1">广播调用</option>
+                                        <option th:selected="${taskDetail.callType == 2}" value="2">分片调用</option>
+                                    </select>
+                                    <div id="shardingCallType" style="color: blue; display: none;" class="form-group" th:each="client,clientStat:${taskDetail.clients}">
+                                        <label class="col-sm-5 control-label" th:text="'地址:'+${client.executionHost}+' 参数:'"> </label>
+                                        <div class="col-sm-4">
+                                            <input type="hidden" th:name="${'clients['+clientStat.index+'].executionHost'}" class="form-control" th:value="${client.executionHost}" /> <input
+                                                type="input" th:name="${'clients['+clientStat.index+'].params'}" class="form-control" th:value="${client.params}"
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </form>
                     </div>
                     <div class="modal-footer">
@@ -285,45 +321,129 @@
             </div>
             <!-- /.modal -->
         </div>
+        <!-- modal end -->
+        <!-- confirm模态框（Modal） -->
+        <div class="modal fade" id="myConfirmModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header ">
+                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                        <h5 class="modal-title">提示</h5>
+                    </div>
+                    <div class="modal-body" id="myConfirmTip">是否确定</div>
+                    <input id="confirmApp" type="hidden" value="" /> <input id="confirmTaskId" type="hidden" value="" /> <input id="confirmMethod" type="hidden" value="" />
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+                        <button type="button" class="btn btn-primary" onclick="doConfirm()">确认</button>
+                    </div>
+                </div>
+                <!-- /.modal-content -->
+            </div>
+            <!-- /.modal -->
+        </div>
+        <!-- modal end -->
     </div>
+    <!-- main end -->
     <script type="text/javascript" th:inline="javascript">
-                    function showModal(app, taskId) {
+                    function showDetailModal(app, taskId) {
                         $('#myModal').on('show.bs.modal', function() {
-                            $.ajax({
-                                url : "../task/detail",
-                                type : 'get',
-                                data : {
-                                    'app' : app,
-                                    'taskId' : taskId,
-                                    'isEdit' : 0
-                                },
-                                success : function(data) {
-                                    $("#detail_modal_body").html(data);
-                                }
-                            })
+                            $("#detail_modal_body").html("<p>加载中...</p>");
                         })
                         $('#myModal').modal({});
+                        $.ajax({
+                            url : "../task/detail",
+                            type : 'get',
+                            data : {
+                                'app' : app,
+                                'taskId' : taskId,
+                                'isEdit' : 0
+                            },
+                            success : function(data) {
+                                $("#detail_modal_body").html(data);
+                            }
+                        });
                     }
+
+                    function showClientsModal(app, taskId) {
+                        $('#myClientsModal').on('show.bs.modal', function() {
+                            $("#clients_modal_body").html("<p>加载中...</p>");
+                        })
+                        $('#myClientsModal').modal({});
+                        $.ajax({
+                            url : "../task/clients",
+                            type : 'get',
+                            data : {
+                                'app' : app,
+                                'taskId' : taskId
+                            },
+                            success : function(data) {
+                                $("#clients_modal_body").html(data);
+                            }
+                        });
+                    }
+
                     function showEditModal(app, taskId) {
                         $('#myEditModal').on('show.bs.modal', function() {
-                            $.ajax({
-                                url : "../task/detail",
-                                type : 'get',
-                                data : {
-                                    'app' : app,
-                                    'taskId' : taskId,
-                                    'isEdit' : 1
-                                },
-                                success : function(data) {
-                                    $("#edit_modal_body").html(data);
-                                }
-                            })
+                            $("#edit_modal_body").html("<p>加载中...</p>");
                         })
                         $('#myEditModal').modal({});
+                        $.ajax({
+                            url : "../task/detail",
+                            type : 'get',
+                            data : {
+                                'app' : app,
+                                'taskId' : taskId,
+                                'isEdit' : 1
+                            },
+                            success : function(data) {
+                                $("#edit_modal_body").html(data);
+                                let s = $('#callTypeSelect').children('option:selected').val();
+                                if(s == 2) {
+                                    $("#shardingCallType").css("display","initial");
+                                } else {
+                                    $("#shardingCallType").css("display","none");
+                                }
+                                $('#callTypeSelect').change(()=> {
+                                    let s = $('#callTypeSelect').children('option:selected').val();
+                                    if(s == 2) {
+                                        $("#shardingCallType").css("display","initial");
+                                    } else {
+                                        $("#shardingCallType").css("display","none");
+                                    }
+                                });
+                            }
+                        });
+                    }
+
+                    function showConfirmModal(app, taskId, tip, confirmMethod) {
+                        $('#myConfirmModal').find("#myConfirmTip").html(tip);
+                        $('#myConfirmModal').find("#confirmMethod").val(
+                                confirmMethod);
+                        $('#myConfirmModal').find("#confirmApp").val(app);
+                        $('#myConfirmModal').find("#confirmTaskId").val(taskId);
+                        $('#myConfirmModal').modal({});
+                    }
+
+                    function doConfirm() {
+                        let cmethod = $('#myConfirmModal').find(
+                                "#confirmMethod").val();
+                        if (cmethod == 'doConfirmExecuteNow') {
+                            doConfirmExecuteNow();
+                        } else if (cmethod == 'doConfirmRemoveTask') {
+                            doConfirmRemoveTask();
+                        }
+                    }
+                    function doConfirmExecuteNow() {
+                        let app = $('#myConfirmModal').find("#confirmApp")
+                                .val();
+                        let taskId = $('#myConfirmModal')
+                                .find("#confirmTaskId").val();
+                        doExecuteNow(app, taskId);
+                        $('#myConfirmModal').modal("hide");
                     }
 
                     var isExecuting = false;
-                    function doExecuteNow(app, taskId) {
+                    function doExecuteNow(app, taskId, executionHost) {
                         if (isExecuting == true) {
                             showGlobalMessage("请稍后重试");
                         }
@@ -334,7 +454,8 @@
                             async : false,
                             data : {
                                 'app' : app,
-                                'taskId' : taskId
+                                'taskId' : taskId,
+                                'executionHost' : executionHost
                             },
                             success : function(data) {
                                 let ret = jQuery.parseJSON(data);
@@ -342,6 +463,28 @@
                             }
                         })
                         isExecuting = false;
+                    }
+
+                    function doConfirmRemoveTask() {
+                        let app = $('#myConfirmModal').find("#confirmApp")
+                                .val();
+                        let taskId = $('#myConfirmModal')
+                                .find("#confirmTaskId").val();
+                        $.ajax({
+                            url : "../api/v1/task/remove",
+                            type : 'post',
+                            async : false,
+                            data : {
+                                'app' : app,
+                                'taskId' : taskId
+                            },
+                            success : function(data) {
+                                let ret = jQuery.parseJSON(data);
+                                showGlobalMessage(ret.message);
+                                doSearch(0);
+                            }
+                        })
+                        $('#myConfirmModal').modal("hide");
                     }
 
                     function showGlobalMessage(msg) {
@@ -441,9 +584,10 @@
                         }
                         let ids = [];
                         if (item == '') {
-                            $("input[type='checkbox']:checked").each(function() {
-                                ids.push($(this).val());
-                            });
+                            $("input[type='checkbox']:checked").each(
+                                    function() {
+                                        ids.push($(this).val());
+                                    });
                         } else {
                             ids.push(item);
                         }
@@ -481,9 +625,10 @@
                         }
                         let ids = [];
                         if (item == '') {
-                            $("input[type='checkbox']:checked").each(function() {
-                                ids.push($(this).val());
-                            });
+                            $("input[type='checkbox']:checked").each(
+                                    function() {
+                                        ids.push($(this).val());
+                                    });
                         } else {
                             ids.push(item);
                         }
