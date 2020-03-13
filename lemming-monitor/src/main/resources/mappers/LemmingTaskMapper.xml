@@ -93,7 +93,7 @@
 
     <insert id="insert"
         parameterType="com.xiaoyu.lemming.core.api.LemmingTask">
-        insert into biz_task(
+        insert into biz_task (
         task_id,
         task_impl,
         name,
@@ -107,21 +107,21 @@
         )
         values
         (
-        #{item.taskId},
-        #{item.taskImpl},
-        #{item.name},
-        #{item.taskGroup},
-        #{item.app},
-        #{item.rule},
-        #{item.transport},
+        #{taskId},
+        #{taskImpl},
+        #{name},
+        #{taskGroup},
+        #{app},
+        #{rule},
+        #{transport},
         <choose>
-            <when test="item.params != null">
-                #{item.params},
+            <when test="params != null">
+                #{params},
             </when>
             <otherwise>'',</otherwise>
         </choose>
-        #{item.usable},
-        #{item.suspension}
+        #{usable},
+        #{suspension}
         )
     </insert>
 
@@ -232,7 +232,8 @@
         a.id as id,
         a.task_id as taskId,
         a.app as app,
-        a.params as params,
+        a.params as
+        params,
         a.execution_host as executionHost
     </sql>
 

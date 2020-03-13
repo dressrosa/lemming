@@ -1,0 +1,155 @@
+<div th:fragment="addModalFragment">
+    <!-- 模态框（Modal） -->
+    <div class="modal fade" id="myAddModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header ">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                    <h4 class="modal-title">新增</h4>
+                </div>
+                <div class="modal-body" id="add_modal_body">
+                    <form id="add_form" class="form-horizontal text-muted" role="form">
+                        <div class="alert alert-warning form-group" id="add_alert_message_box" style="display: none;">
+                            <p id="add_alert_message"></p>
+                        </div>
+                        <div class="row clearfix">
+                            <div class="col-md-5 column">
+                                <div class="form-group ">
+                                    <label for="" class="col-sm-5 control-label">名称* :</label>
+                                    <div class="col-sm-7">
+                                        <input type="text" name="name" class="form-control" />
+                                    </div>
+                                </div>
+                                <div class="form-group ">
+                                    <label for="" class="col-sm-5 control-label">任务ID* :</label>
+                                    <div class="col-sm-7">
+                                        <input type="text" name="taskId" class="form-control" />
+                                    </div>
+                                </div>
+                                <div class="form-group ">
+                                    <label for="" class="col-sm-5 control-label">所属应用* :</label>
+                                    <div class="col-sm-7">
+                                        <input type="text" name="app" class="form-control" />
+                                    </div>
+                                </div>
+                                <div class="form-group ">
+                                    <label for="" class="col-sm-5 control-label">所属组别* :</label>
+                                    <div class="col-sm-7">
+                                        <select name="taskGroup" class="form-control select2">
+                                            <option value="" style="color: #337ab7;">-- 请选择 --</option>
+                                            <option value="研发0部">研发0部</option>
+                                            <option value="研发1部">研发1部</option>
+                                            <option value="研发2部">研发2部</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="form-group ">
+                                    <label for="" class="col-sm-5 control-label">任务实现* :</label>
+                                    <div class="col-sm-7">
+                                        <input type="text" name="taskImpl" class="form-control" />
+                                    </div>
+                                </div>
+                                <div class="form-group ">
+                                    <label for="" class="col-sm-5 control-label">调用类型* :</label>
+                                    <div class="col-sm-7">
+                                        <select name="callType" class="form-control select2 ">
+                                            <option value="0">随机调用</option>
+                                            <option value="1">广播调用</option>
+                                            <option value="2">分片调用</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <!--左边结尾  -->
+                            </div>
+                            <div class="col-md-5 column">
+                                <div class="form-group ">
+                                    <label for="" class="col-sm-5 control-label">调用协议* :</label>
+                                    <div class="col-sm-7">
+                                        <select name="transport" class="form-control select2">
+                                            <option value="" style="color: #337ab7;">-- 请选择 --</option>
+                                            <option value="dubbo">dubbo</option>
+                                            <option value="beacon">beacon</option>
+                                            <option value="http">http</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="form-group ">
+                                    <label for="" class="col-sm-5 control-label">执行规则 :</label>
+                                    <div class="col-sm-7">
+                                        <input type="text" name="rule" class="form-control" />
+                                    </div>
+                                </div>
+                                <div class="form-group ">
+                                    <label for="" class="col-sm-5 control-label">调用参数<i class=" fa fa-question-circle-o fa-1x" title="分片调用时,会优先使用具体机器的参数"></i> :
+                                    </label>
+                                    <div class="col-sm-7">
+                                        <input type="text" name="params" class="form-control" />
+                                    </div>
+                                </div>
+                                <div class="form-group ">
+                                    <label for="" class="col-sm-5 control-label">是否暂停* :</label>
+                                    <div class="col-sm-7">
+                                        <select name="suspension" class="form-control select2">
+                                            <option value="0">否</option>
+                                            <option value="1">是</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="form-group ">
+                                    <label for="" class="col-sm-5 control-label">是否可用* :</label>
+                                    <div class="col-sm-7">
+                                        <select name="usable" class="form-control select2">
+                                            <option value="0">否</option>
+                                            <option value="1">是</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+                    <button type="button" class="btn btn-primary" onclick="doAdd()">确认新增</button>
+                </div>
+            </div>
+            <!-- /.modal-content -->
+        </div>
+        <!-- /.modal -->
+    </div>
+    <!-- modal end -->
+    <script type="text/javascript" th:inline="javascript">
+                    function showAddModal() {
+                        $("#add_alert_message_box").css("display", 'none');
+                        $('#myAddModal').modal({});
+                    }
+
+                    function doAdd() {
+                        $.ajax({
+                            url : "../api/v1/task/add",
+                            type : 'post',
+                            async : false,
+                            data : $('#add_form').serialize(),
+                            success : function(data) {
+                                let ret = jQuery.parseJSON(data);
+                                if (ret.code == 0) {
+                                    $('#myAddModal').modal("hide");
+                                    showGlobalMessage("操作成功");
+                                } else {
+                                    showErrorMessage(ret.message);
+                                    return;
+                                }
+                            },
+                            error : function(data) {
+                                showErrorMessage(data);
+                                return;
+                            }
+                        })
+                        doSearch(0);
+                    }
+                    function showErrorMessage(msg) {
+                        $("#add_alert_message").html(msg);
+                        $("#add_alert_message_box").css("display", '');
+                    }
+                </script>
+</div>

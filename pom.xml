@@ -13,6 +13,7 @@
     </properties>
     <modules>
         <module>lemming-core</module>
+        <module>lemming-core-api</module>
         <module>lemming-transport</module>
         <module>lemming-schedule</module>
         <module>lemming-examples</module>

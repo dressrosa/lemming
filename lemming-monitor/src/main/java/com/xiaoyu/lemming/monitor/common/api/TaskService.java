@@ -33,4 +33,6 @@ public interface TaskService {
 
     ResponseMapper remove(LemmingTaskQuery query);
 
+    ResponseMapper add(LemmingTask task);
+
 }

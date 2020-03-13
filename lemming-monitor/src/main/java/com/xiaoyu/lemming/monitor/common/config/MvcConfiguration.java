@@ -4,23 +4,19 @@
 package com.xiaoyu.lemming.monitor.common.config;
 
 import java.nio.charset.Charset;
+import java.util.ArrayList;
 import java.util.List;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.Ordered;
+import org.springframework.http.MediaType;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.StringHttpMessageConverter;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
-import org.springframework.web.servlet.config.annotation.ViewControllerRegistry;
 import org.springframework.web.servlet.config.annotation.ViewResolverRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
-import org.springframework.web.servlet.handler.SimpleMappingExceptionResolver;
 import org.springframework.web.servlet.view.InternalResourceViewResolver;
 
 import com.alibaba.fastjson.serializer.SerializerFeature;
@@ -35,8 +31,6 @@ import com.alibaba.fastjson.support.spring.FastJsonHttpMessageConverter;
 @Configuration
 @EnableScheduling
 public class MvcConfiguration extends WebMvcConfigurerAdapter {
-
-    private static Logger logger = LoggerFactory.getLogger(MvcConfiguration.class);
 
     /**
      * springboot 默认静态资源访问路径
@@ -54,12 +48,12 @@ public class MvcConfiguration extends WebMvcConfigurerAdapter {
     /**
      * 设置起始欢迎页
      */
-    @Override
-    public void addViewControllers(ViewControllerRegistry registry) {
-        registry.addViewController("/").setViewName("forward:/xiaoyu.me.html");
-        registry.setOrder(Ordered.HIGHEST_PRECEDENCE);
-        super.addViewControllers(registry);
-    }
+//    @Override
+//    public void addViewControllers(ViewControllerRegistry registry) {
+//       // registry.addViewController("/").setViewName("task/taskList");
+//        registry.setOrder(Ordered.HIGHEST_PRECEDENCE);
+//        super.addViewControllers(registry);
+//    }
 
     /**
      * 解决@{@link responseBody}中文乱码问题
@@ -69,6 +63,9 @@ public class MvcConfiguration extends WebMvcConfigurerAdapter {
         StringHttpMessageConverter converter1 = new StringHttpMessageConverter(Charset.forName("UTF-8"));
         // alibaba json转化
         FastJsonHttpMessageConverter converter2 = new FastJsonHttpMessageConverter();
+        List<MediaType> supportedMediaTypes = new ArrayList<>();
+        supportedMediaTypes.add(MediaType.ALL);
+        converter2.setSupportedMediaTypes(supportedMediaTypes);
         FastJsonConfig fastJsonConfig = new FastJsonConfig();
         fastJsonConfig.setSerializerFeatures(SerializerFeature.UseISO8601DateFormat,
                 SerializerFeature.WriteMapNullValue,
@@ -76,28 +73,6 @@ public class MvcConfiguration extends WebMvcConfigurerAdapter {
         converter2.setFastJsonConfig(fastJsonConfig);
         converters.add(converter1);
         converters.add(converter2);
-    }
-
-    /**
-     * 基本的配置(错误页面和全局异常捕捉)
-     * 
-     * @author xiaoyu
-     * @return
-     * @time 2016年3月22日上午8:28:04
-     */
-    @Bean(name = "simpleMappingExceptionResolver")
-    public SimpleMappingExceptionResolver createSimpleMappingExceptionResolver() {
-        SimpleMappingExceptionResolver r = new SimpleMappingExceptionResolver();
-        // Properties mappings = new Properties();
-        // mappings.setProperty("DatabaseException", "databaseError");
-        // mappings.setProperty("RuntimeException", "runtimeError");
-        // r.setExceptionMappings(mappings); // None by default
-        // 只能拦截Exception，404错误是拦截不了
-        r.setDefaultErrorView("common/500"); // 产生exception后跳转的页面
-        r.setExceptionAttribute("ex"); // Default is "exception"
-        r.setWarnLogCategory("info"); // No default//TODO 未明白配置
-        logger.info("mvc配置:" + r.getOrder());
-        return r;
     }
 
     /**

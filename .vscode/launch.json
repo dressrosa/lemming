@@ -1,0 +1,11 @@
+{
+    "configurations": [
+        {
+            "type": "java",
+            "name": "CodeLens (Launch) - SpringBizServer",
+            "request": "launch",
+            "mainClass": "com.xiaoyu.lemmingtest.SpringBizServer",
+            "projectName": "lemming-client-http"
+        }
+    ]
+}

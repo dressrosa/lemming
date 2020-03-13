@@ -1,0 +1,192 @@
+<div th:fragment="editModalFragment">
+    <!-- 模态框（Modal） -->
+    <div class="modal fade" id="myEditModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header ">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                    <h4 class="modal-title" id="myModalLabel">编辑</h4>
+                </div>
+                <div class="modal-body" id="edit_modal_body">
+                    <form id="edit_form" class="form-horizontal text-muted" role="form" th:fragment="Task_Modal_Edit" th:if="${taskDetail != null}">
+                        <div class="alert alert-warning form-group" id="alert_message_box" style="display: none;">
+                            <!--   <a href="#" class="" data-dismiss="alert"> &times;</a> -->
+                            <p id="alert_message"></p>
+                        </div>
+                        <input type="hidden" name="id" th:value="${taskDetail.id}" readonly="readonly" />
+                        <div class="row clearfix">
+                            <div class="col-md-5 column">
+                                <div class="form-group ">
+                                    <label for="" class="col-sm-5 control-label">名称 *</label>
+                                    <div class="col-sm-7">
+                                        <input type="text" name="name" class="form-control" th:value="${taskDetail.name}" />
+                                    </div>
+                                </div>
+                                <div class="form-group ">
+                                    <label for="" class="col-sm-5 control-label">任务ID *</label>
+                                    <div class="col-sm-7">
+                                        <input type="text" name="taskId" class="form-control" th:value="${taskDetail.taskId}" readonly="readonly" />
+                                    </div>
+                                </div>
+                                <div class="form-group ">
+                                    <label for="" class="col-sm-5 control-label">所属应用 *</label>
+                                    <div class="col-sm-7">
+                                        <input type="text" name="app" class="form-control" th:value="${taskDetail.app}" readonly="readonly" />
+                                    </div>
+                                </div>
+                                <div class="form-group ">
+                                    <label for="" class="col-sm-5 control-label">所属组别 *</label>
+                                    <div class="col-sm-7">
+                                        <select name="callType" th:field="${taskDetail.taskGroup}" th:value="${taskDetail.taskGroup}" class="form-control select2">
+                                            <option value="" style="color: #337ab7;">-- 请选择 --</option>
+                                            <option th:selected="${taskDetail.callType == '研发0部'}" value="研发0部">研发0部</option>
+                                            <option th:selected="${taskDetail.callType == '研发1部'}" value="研发1部">研发1部</option>
+                                            <option th:selected="${taskDetail.callType == '研发2部'}" value="研发2部">研发2部</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="form-group ">
+                                    <label for="" class="col-sm-5 control-label">任务实现 *</label>
+                                    <div class="col-sm-7">
+                                        <input type="text" class="form-control" th:value="${taskDetail.taskImpl}" readonly="readonly" />
+                                    </div>
+                                </div>
+                                <!-- 左边结尾 -->
+                            </div>
+                            <div class="col-md-5 column">
+                                <div class="form-group ">
+                                    <label for="" class="col-sm-5 control-label">执行规则</label>
+                                    <div class="col-sm-7">
+                                        <input type="text" name="rule" class="form-control" th:value="${taskDetail.rule}" />
+                                    </div>
+                                </div>
+                                <div class="form-group ">
+                                    <label for="" class="col-sm-5 control-label">调用参数<i class=" fa fa-question-circle-o fa-1x" style="color: blue;" title="分片调用时,会优先使用具体机器的参数"></i></label>
+                                    <div class="col-sm-7">
+                                        <input type="text" name="params" class="form-control" th:value="${taskDetail.params}" />
+                                    </div>
+                                </div>
+                                <div class="form-group ">
+                                    <label for="" class="col-sm-5 control-label">是否暂停 *</label>
+                                    <div class="col-sm-7 ">
+                                        <select name="suspension" th:field="${taskDetail.suspension}" th:value="${taskDetail.suspension}" class="form-control select2">
+                                            <option value="">-- 请选择 --</option>
+                                            <option th:selected="${taskDetail.suspension == 0}" value="0">否</option>
+                                            <option th:selected="${taskDetail.suspension == 1}" value="1">是</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="form-group ">
+                                    <label for="" class="col-sm-5 control-label">是否可用 *</label>
+                                    <div class="col-sm-7 ">
+                                        <select name="usable" th:value="${taskDetail.usable}" class="form-control select2">
+                                            <option value="">-- 请选择 --</option>
+                                            <option th:selected="${taskDetail.usable == 0}" value="0">否</option>
+                                            <option th:selected="${taskDetail.usable == 1}" value="1">是</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="form-group ">
+                                    <label for="" class="col-sm-5 control-label">调用协议* :</label>
+                                    <div class="col-sm-7">
+                                        <select name="transport" th:value="${taskDetail.transport}" class="form-control select2">
+                                            <option value="">-- 请选择 --</option>
+                                            <option th:selected="${taskDetail.transport == 'dubbo'}" value="dubbo">dubbo</option>
+                                            <option th:selected="${taskDetail.transport == 'beacon'}" value="beacon">beacon</option>
+                                            <option th:selected="${taskDetail.transport == 'http'}" value="http">http</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <!-- 右边结尾 -->
+                            </div>
+                            <div class="">
+                                <label for="" class="col-sm-2 control-label">调用类型 *</label>
+                                <div class="col-sm-8 ">
+                                    <select name="callType" id="callTypeSelect" th:field="${taskDetail.callType}" th:value="${taskDetail.callType}" class="form-control select2 ">
+                                        <option value="" style="color: #337ab7;">-- 请选择 --</option>
+                                        <option th:selected="${taskDetail.callType == 0}" value="0">随机调用</option>
+                                        <option th:selected="${taskDetail.callType == 1}" value="1">广播调用</option>
+                                        <option th:selected="${taskDetail.callType == 2}" value="2">分片调用</option>
+                                    </select>
+                                    <div id="shardingCallType" style="color: blue; display: none;" class="form-group" th:each="client,clientStat:${taskDetail.clients}">
+                                        <label class="col-sm-6 control-label" th:text="'地址:'+${client.executionHost}+' 参数:'"> </label>
+                                        <div class="col-sm-6">
+                                            <input type="hidden" th:name="${'clients['+clientStat.index+'].executionHost'}" th:value="${client.executionHost}" /> <input type="text"
+                                                th:name="${'clients['+clientStat.index+'].params'}" class="form-control" th:value="${client.params}"
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+                    <button type="button" class="btn btn-primary" onclick="doEdit()">提交更改</button>
+                </div>
+            </div>
+            <!-- /.modal-content -->
+        </div>
+        <!-- /.modal -->
+    </div>
+    <!-- modal end -->
+    <script type="text/javascript" th:inline="javascript">
+    function showEditModal(app, taskId) {
+        $('#myEditModal').on('show.bs.modal', function() {
+            $("#edit_modal_body").html("<p>加载中...</p>");
+        })
+        $('#myEditModal').modal({});
+        $.ajax({
+            url : "../task/detail",
+            type : 'get',
+            data : {
+                'app' : app,
+                'taskId' : taskId,
+                'isEdit' : 1
+            },
+            success : function(data) {
+                $("#edit_modal_body").html(data);
+                let s = $('#callTypeSelect').children('option:selected').val();
+                if(s == 2) {
+                    $("#shardingCallType").css("display","initial");
+                } else {
+                    $("#shardingCallType").css("display","none");
+                }
+                $('#callTypeSelect').change(()=> {
+                    let s = $('#callTypeSelect').children('option:selected').val();
+                    if(s == 2) {
+                        $("#shardingCallType").css("display","initial");
+                    } else {
+                        $("#shardingCallType").css("display","none");
+                    }
+                });
+            }
+        });
+    }
+    
+    function doEdit() {
+        $.ajax({
+            url : "../api/v1/task/update",
+            type : 'post',
+            async : false,
+            data : $('#edit_form').serialize(),
+            success : function(data) {
+                let ret = jQuery.parseJSON(data);
+                if (ret.code == 0) {
+                    $('#myEditModal').modal("hide");
+                    showGlobalMessage("操作成功");
+                } else {
+                    showMessage(ret.message);
+                    return;
+                }
+            },
+            error : function(data) {
+                showMessage(data);
+                return;
+            }
+        })
+        doSearch(0);
+    }
+</script>
+</div>

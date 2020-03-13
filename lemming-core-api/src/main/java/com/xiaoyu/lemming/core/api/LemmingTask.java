@@ -18,7 +18,7 @@ public class LemmingTask implements Task {
     // 链路id
     private String traceId;
     private Integer id;
-    private int delFlag = 0;
+    private Integer delFlag = 0;
 
     // 任务id
     private String taskId;
@@ -55,7 +55,7 @@ public class LemmingTask implements Task {
     // 是否正在运行
     private volatile boolean running;
     // 是否同步
-    private boolean sync;
+    private Boolean sync = false;
     // 是否暂停
     private Integer suspension;
 

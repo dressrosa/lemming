@@ -84,6 +84,28 @@ public class TaskServiceImpl implements TaskService {
     }
 
     @Override
+    public ResponseMapper add(LemmingTask param) {
+        LemmingTask target = this.taskDao.getTask(param.getApp(), param.getTaskId());
+        if (target != null) {
+            return ResponseMapper.createMapper().code(ResponseCode.EXIST.statusCode());
+        }
+        LemmingTask t = new LemmingTask();
+        t.setTaskId(param.getTaskId());
+        t.setApp(param.getApp().trim());
+        t.setTaskImpl(param.getTaskImpl().trim());
+        t.setTaskGroup(param.getTaskGroup().trim());
+        t.setCallType(param.getCallType());
+        t.setRule(StringUtil.isNotBlank(param.getRule()) ? param.getRule().trim() : "");
+        t.setUsable(param.getUsable());
+        t.setSuspension(param.getSuspension());
+        t.setName(param.getName().trim());
+        t.setParams(StringUtil.isNotBlank(param.getParams()) ? param.getParams().trim() : "");
+        t.setTransport(param.getTransport().trim());
+        this.taskDao.insert(t);
+        return ResponseMapper.createMapper();
+    }
+
+    @Override
     public List<LemmingTask> queryList(LemmingTaskQuery query) {
         PageHelper.startPage(query.getPageNum(), query.getPageSize());
         List<LemmingTask> list = this.taskDao.getTasks(query);

@@ -9,6 +9,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -73,6 +74,47 @@ public class TaskController {
         }
         this.taskService.updateTask(task);
         return ResponseMapper.createMapper().resultJson();
+    }
+
+    @RequestMapping(value = "api/v1/task/add", method = RequestMethod.POST)
+    @ResponseBody
+    public String addTask(HttpServletRequest request, @ModelAttribute LemmingTask task) {
+        if (StringUtil.isBlank(task.getApp())) {
+            return ResponseMapper.createMapper()
+                    .code(ResponseCode.ARGS_ERROR.statusCode())
+                    .message("所属应用不能为空")
+                    .resultJson();
+        }
+        if (StringUtil.isBlank(task.getName())) {
+            return ResponseMapper.createMapper()
+                    .code(ResponseCode.ARGS_ERROR.statusCode())
+                    .message("任务名称不能为空")
+                    .resultJson();
+        }
+        if (StringUtil.isBlank(task.getTaskId())) {
+            return ResponseMapper.createMapper()
+                    .code(ResponseCode.ARGS_ERROR.statusCode())
+                    .message("任务ID不能为空")
+                    .resultJson();
+        }
+        if (StringUtil.isBlank(task.getTaskImpl())) {
+            return ResponseMapper.createMapper()
+                    .code(ResponseCode.ARGS_ERROR.statusCode())
+                    .message("任务实现不能为空")
+                    .resultJson();
+        }
+        if (StringUtil.isBlank(task.getTaskGroup())) {
+            return ResponseMapper.createMapper()
+                    .code(ResponseCode.ARGS_ERROR.statusCode())
+                    .message("所属组织不能为空")
+                    .resultJson();
+        }
+        if (task.getSuspension() == null || task.getUsable() == null) {
+            return ResponseMapper.createMapper()
+                    .code(ResponseCode.ARGS_ERROR.statusCode())
+                    .resultJson();
+        }
+        return this.taskService.add(task).resultJson();
     }
 
     @RequestMapping(value = "api/v1/task/pause", method = RequestMethod.POST)
@@ -150,9 +192,9 @@ public class TaskController {
         LemmingTask task = this.taskService.queryDetail(query);
         model.addAttribute("taskDetail", task);
         if (isEdit == 1) {
-            return "task/taskList::Task_Modal_Edit";
+            return "task/edit::Task_Modal_Edit";
         }
-        return "task/taskList::Task_Modal_Detail";
+        return "task/detail::Task_Modal_Detail";
     }
 
     @RequestMapping(value = "task/clients")
