@@ -9,7 +9,7 @@
     </parent>
     <artifactId>lemming-spring</artifactId>
     <properties>
-        <springVersion>4.3.16.RELEASE</springVersion>
+        <springVersion>5.2.20.RELEASE</springVersion>
     </properties>
     <dependencies>
         <dependency>
